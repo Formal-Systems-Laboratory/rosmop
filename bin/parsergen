@@ -1,0 +1,7 @@
+#!/bin/bash
+
+SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname $SHDIR)"
+
+cd $DIR/src/rosmop/parser/main_parser
+javacc rosmopparser.jj

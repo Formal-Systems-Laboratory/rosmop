@@ -1,0 +1,35 @@
+#include <stdint.h>
+
+safeTrigger() {
+       bool isSafeTrigger;
+       
+       init(){
+       		isSafeTrigger = false;
+       }
+
+       event checkPoint(std::string monitored_name, double monitored_position) /landshark/joint_states sensor_msgs/JointState '{name[1]:monitored_name, position[1]:monitored_position}'
+       {
+		if(monitored_name=="turret_tilt")
+		{
+			if(monitored_position > -0.45){
+				isSafeTrigger = true;
+				ROS_INFO("Safe to trigger");
+			}else{
+				isSafeTrigger = false;
+				ROS_INFO("Not safe to trigger");
+			}
+		}
+	   }
+       
+
+     event safeTrigger() /landshark_control/trigger landshark_msgs/PaintballTrigger '{}'
+       {
+		if(!isSafeTrigger)
+		{
+			ROS_WARN("Monitor: Not allowed to trigger in this pose!");
+			return;
+		}
+
+       }
+
+}

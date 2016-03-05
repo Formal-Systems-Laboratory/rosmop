@@ -1,0 +1,14 @@
+reverseDirection() {
+		
+       event reverse(double lx, double ly, double lz, double ax, double ay, double az) /landshark_control/base_velocity geometry_msgs/TwistStamped '{twist:{angular:{x:ax,y:ay,z:az},linear:{x:lx,y:ly,z:lz}}}'
+       {
+         lx = -lx;
+         ly = -ly;
+         lz = -lz;
+         ax = -ax;
+         ay = -ay;
+         az = -az;
+
+		//ROS_INFO("Velocity reversed");
+       }
+}

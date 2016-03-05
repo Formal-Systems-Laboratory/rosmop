@@ -1,0 +1,44 @@
+#!/bin/bash
+
+SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname $SHDIR)"
+
+export LOGICPLUGINPATH=$DIR/lib/plugins
+
+PARAMS=$@
+
+function generate(){
+	java -cp "$DIR/lib/ROSMOP.jar":"$RVMONITOR/*":"$RVMONITOR/plugins/*" rosmop.Main $@
+}
+
+if [ -f "$DIR/lib/ROSMOP.jar" ];
+then
+	FILENAME=$1
+	case "$FILENAME" in
+	*/)
+		FILENAME=${FILENAME%"/"}
+#  		echo "slash $FILENAME"
+  		;;
+	*)
+		FILENAME=${FILENAME%".rv"}
+		FILENAME="$(dirname $FILENAME)"
+#		echo "no slash $FILENAME"
+		;;
+	esac
+		
+	echo "Monitor generation..."
+
+	RES=$(generate $PARAMS)
+	echo $RES
+
+	if [ -f "$FILENAME/rvmonitor.cpp" ];
+	then
+		echo "Done."
+	else
+		echo "Something went wrong. Monitors are not generated."
+	fi
+else
+   echo "Binaries are not created. Call \"ant\" first."
+fi
+
+

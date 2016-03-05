@@ -1,0 +1,54 @@
+#include <math.h>
+
+logging(){
+
+	event batteryState(double lvl) /landshark/battery landshark_msgs/BatteryState '{level: lvl}'
+	{
+		if(fmod(lvl,50) == 0){
+			ROS_WARN("Battery life is %f", lvl);
+		}
+	}
+	
+	event position(double X, double Y, double Z) /landshark/gps_original geometry_msgs/PointStamped '{point: {x:X, y:Y, z:Z}}'
+	{
+		ROS_INFO("Landshark position- X: %f, Y: %f, Z: %f", X, Y, Z);
+	}
+	
+	event turretMovement(std::string[] movement, double[] direction) /landshark_control/turret_joint_velocity landshark_msgs/JointControl '{name: movement, value: direction}'
+	{
+		if(direction[0] != 0){
+			if(direction[0] < 0){
+				ROS_INFO("%s going right", movement[0].c_str());
+			} else {
+				ROS_INFO("%s going left", movement[0].c_str());
+			}
+		}
+
+		if(direction[1] != 0){
+			if(direction[1] < 0){
+				ROS_INFO("%s going down", movement[1].c_str());
+			} else {
+				ROS_INFO("%s going up", movement[1].c_str());
+			}
+		}
+	}
+	
+	event moogMovement(std::string[] movement, double[] direction) /landshark_control/moog_joint_velocity landshark_msgs/JointControl '{name: movement, value: direction}'
+	{
+		if(direction[0] != 0){
+			if(direction[0] < 0){
+				ROS_INFO("%s going right", movement[0].c_str());
+			} else {
+				ROS_INFO("%s going left", movement[0].c_str());
+			}
+		}
+
+		if(direction[1] != 0){
+			if(direction[1] < 0){
+				ROS_INFO("%s going down", movement[1].c_str());
+			} else {
+				ROS_INFO("%s going up", movement[1].c_str());
+			}
+		}
+	}
+}

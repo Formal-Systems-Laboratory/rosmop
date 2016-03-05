@@ -1,0 +1,60 @@
+#!/bin/bash
+
+SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname $SHDIR)"
+
+RVMASTER="$(dirname $DIR)"
+RVMASTERSRC=$RVMASTER/src/RVMaster/src
+RVMASTERINC=$RVMASTER/src/RVMaster/include
+
+export LOGICPLUGINPATH=$DIR/lib/plugins
+
+PARAMS=$@
+
+function generate(){
+	java -cp "$DIR/lib/ROSMOP.jar":"$RVMONITOR/*":"$RVMONITOR/plugins/*" rosmop.Main $@
+}
+
+function rvcompile(){
+	catkin_make
+	source devel/setup.sh
+}
+
+if [ -f "$DIR/lib/ROSMOP.jar" ];
+then
+	FILENAME=$1
+	case "$FILENAME" in
+	*/)
+		FILENAME=${FILENAME%"/"}
+#  		echo "slash $FILENAME"
+  		;;
+	*)
+		FILENAME=${FILENAME%".rv"}
+		FILENAME="$(dirname $FILENAME)"
+#		echo "no slash $FILENAME"
+		;;
+	esac
+		
+	echo "Monitor generation..."
+
+	RES=$(generate $PARAMS)
+	echo $RES
+
+	if [ -f "$FILENAME/rvmonitor.cpp" ];
+	then
+		mv $FILENAME/rvmonitor.cpp $RVMASTERSRC
+		mv $FILENAME/rvmonitor.h $RVMASTERINC
+
+		echo "Generated files are copied."
+		echo "Compiling RVMaster..."
+
+		export -f rvcompile
+		gnome-terminal --working-directory=$RVMASTER --execute bash -c "rvcompile ; bash"
+
+		echo "Check compilation status on the new terminal."
+	else
+		echo "Something went wrong. Monitors are not generated."
+	fi
+else
+   echo "Binaries are not created. Call \"ant\" first."
+fi

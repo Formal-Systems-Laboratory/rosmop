@@ -1,0 +1,7 @@
+specColor(){
+
+	event turtleColor(char R, char G, char B) /turtle1/color_sensor turtlesim/Color '{r: R, g: G, b: B}'
+	{
+		ROS_INFO("turtlesim/Color red: %c, green: %c, blue: %c", R, G, B);
+	}
+}

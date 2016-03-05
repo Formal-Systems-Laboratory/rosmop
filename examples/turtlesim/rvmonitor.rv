@@ -1,0 +1,13 @@
+turtlesimLog(){
+
+	event turtleVelocity(float L, float A) /turtle1/command_velocity turtlesim/Velocity '{linear: L, angular: A}'
+	{
+		ROS_INFO("turtlesim/Velocity linear: %f, angular: %f", L, A);
+	}
+
+	event turtlePose(float X, float Y, float Th) /turtle1/pose turtlesim/Pose '{x: X, y: Y, theta: Th}'
+	{
+		ROS_INFO("turtlesim/Pose x: %f, y: %f, theta: %f", X, Y, Th);
+	}
+
+}

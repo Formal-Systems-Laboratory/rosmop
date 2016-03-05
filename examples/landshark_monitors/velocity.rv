@@ -1,0 +1,22 @@
+velocity(){
+	bool firstSlow;
+	
+	init(){
+		firstSlow = true;
+	}
+
+	event twoTimesSlower(double lx, double ly, double lz, double ax, double ay, double az) /landshark_control/base_velocity geometry_msgs/TwistStamped '{twist:{angular:{x:ax,y:ay,z:az},linear:{x:lx,y:ly,z:lz}}}'
+       {
+         lx = lx/2;
+         ly = ly/2;
+         lz = lz/2;
+         ax = ax/2;
+         ay = ay/2;
+         az = az/2;
+		 
+		 if(firstSlow){
+			ROS_INFO("Going 2x slower now");
+			firstSlow = false;
+		 }
+       }
+}

@@ -1,0 +1,59 @@
+safeZone(){
+	int posx;
+	int posy;
+        int vectorx;
+        int vectory;
+
+	event vectorCheck(double X, double Y, double Z) /landshark/magnetometer geometry_msgs/Vector3Stamped '{vector: {x:X, y:Y, z:Z}}'
+	{
+		if( X > 0 ) {	
+		  vectorx = 1;
+		} else if( X < 0 ) {
+		  vectorx = -1;
+		} else {
+		  vectorx = 0;
+		}
+
+		if( Y > 0 ) {
+		  vectory = 1;  
+		} else if( Y < 0 ) {
+	 	  vectory = -1;
+		} else {
+		  vectory = 0;
+		}
+
+	}
+
+	event posCheck(double X, double Y, double Z) /landshark/gps_pose nav_msgs/Odometry '{pose: {position: {x:X, y:Y, z:Z}}}'
+	{
+		posx = X;
+		posy = Y;
+	}
+
+	event moveOrStop(double lx, double ly, double lz) /landshark_control/base_velocity geometry_msgs/TwistStamped '{twist:{linear:{x:lx,y:ly,z:lz}}}'
+	{
+		if( posx > 9 ) {
+                  if(vectory * lx < 0) {
+                    ROS_WARN("Position in X axis not allowed"); return;
+                  }
+		} else if( posx < 2 ) {
+		  if(vectory * lx > 0) {
+                    ROS_WARN("Position in X axis not allowed"); return;
+		  }
+		}               
+                
+		if( posy > 7 ) {
+		  if(vectorx * lx > 0) {
+		    ROS_WARN("Position in Y axis not allowed"); return;
+		  }  
+		} else if( posy < 0 ) {
+		  if(vectorx * lx < 0) {
+                    ROS_WARN("Position in Y axis not allowed"); return;
+                  }
+                }
+
+              //  ROS_INFO("TwistedStamped - X: %f, Y: %f, Z: %f", lx, ly, lz);
+
+
+	}
+}

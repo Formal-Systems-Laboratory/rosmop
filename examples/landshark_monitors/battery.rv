@@ -1,0 +1,9 @@
+battery(){
+
+	event batteryLow(double lvl) /landshark/battery landshark_msgs/BatteryState '{level: lvl}'
+	{
+		if(lvl < 250){
+			ROS_WARN("Battery life less than 25%%");
+		}
+	}
+}
