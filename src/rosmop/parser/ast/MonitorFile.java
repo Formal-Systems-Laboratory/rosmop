@@ -29,7 +29,7 @@ public class MonitorFile {
     
     private void addMsgTypeIncludes() {
     	for (Specification specification : specifications) {
-			for (Event event : specification.getEvents()) {
+			for (ROSEvent event : specification.getEvents()) {
 				addPreamble("#include \"" + event.getMsgType() + ".h\"");
 			}
 		}

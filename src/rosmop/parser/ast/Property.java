@@ -19,7 +19,7 @@ public class Property {
 
 	private final String specName;
 
-	private List<Event> publishKeywordEvents = null;
+	private List<ROSEvent> publishKeywordEvents = null;
 
 	/**
 	 * Construct the Property out of its component elements.
@@ -46,7 +46,7 @@ public class Property {
 
 			while(i1 < preproc.length()){
 				if(publishKeywordEvents == null)
-					publishKeywordEvents = new ArrayList<Event>();
+					publishKeywordEvents = new ArrayList<ROSEvent>();
 
 				String st = preproc.substring(i1);
 				//			System.out.println(st);
@@ -78,7 +78,7 @@ public class Property {
 					msgType = msgType.replaceAll("\"", "");
 					//				System.out.println(msgType);
 
-					Event pubevent = new Event(new ArrayList<String>(), "publish"+message+count, 
+					ROSEvent pubevent = new ROSEvent(new ArrayList<String>(), "publish"+message+count, 
 							new ArrayList<String>(), "()", topic, msgType.replace("::", "/"), 
 							new HashMap<String, String>(), "{}", specName);
 					publishKeywordEvents.add(pubevent);
@@ -124,7 +124,7 @@ public class Property {
 		return handlers;
 	}
 
-	public List<Event> getPublishKeywordEvents() {
+	public List<ROSEvent> getPublishKeywordEvents() {
 		return publishKeywordEvents;
 	}
 

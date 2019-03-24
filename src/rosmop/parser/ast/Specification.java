@@ -16,7 +16,7 @@ public class Specification {
     private final String languageParameters;
     private String languageDeclarations;
     private final String init;
-    private final List<Event> events;
+    private final List<ROSEvent> events;
     private final List<Property> properties;
     
     private List<Variable> specDeclarations = new ArrayList<Variable>();
@@ -33,7 +33,7 @@ public class Specification {
      */
     public Specification(final String preDeclarations, final List<String> languageModifiers, 
             final String name, final String languageParameters, final String languageDeclarations, 
-            String init, final List<Event> events, final List<Property> properties) {
+            String init, final List<ROSEvent> events, final List<Property> properties) {
         this.preDeclarations = preDeclarations;
         this.languageModifiers = 
             Collections.unmodifiableList(new ArrayList<String>(languageModifiers));
@@ -41,7 +41,7 @@ public class Specification {
         this.languageParameters = languageParameters;
         this.languageDeclarations = languageDeclarations;
         this.init = init;
-        this.events = Collections.unmodifiableList(new ArrayList<Event>(events));
+        this.events = Collections.unmodifiableList(new ArrayList<ROSEvent>(events));
         this.properties = Collections.unmodifiableList(new ArrayList<Property>(properties));
         
         declarify();
@@ -104,7 +104,7 @@ public class Specification {
      * An unmodifiable list with the events to monitor.
      * @return The events being monitored by the generated monitor program.
      */
-    public List<Event> getEvents() {
+    public List<ROSEvent> getEvents() {
         return events;
     }
     
