@@ -25,7 +25,7 @@ import com.runtimeverification.rvmonitor.util.RVMException;
 
 import rosmop.codegen.CppGenerator;
 import rosmop.codegen.HeaderGenerator;
-import rosmop.parser.ast.Event;
+import rosmop.parser.ast.ROSEvent;
 import rosmop.parser.ast.MonitorFile;
 import rosmop.parser.ast.Specification;
 import rosmop.parser.ast.Variable;
@@ -173,7 +173,7 @@ public class Main {
 				 * are gathered and checked for duplicate event names and field declarations;
 				 * they should have unique names.*/
 				for (Specification spec : f.getSpecifications()) {
-					for (Event event : spec.getEvents()) {
+					for (ROSEvent event : spec.getEvents()) {
 						if (!events.add(event.getName())) 
 							throw new ROSMOPException("Duplicate event names");
 					}

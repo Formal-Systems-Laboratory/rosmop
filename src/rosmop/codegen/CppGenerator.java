@@ -8,7 +8,7 @@ import java.util.Set;
 
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
-import rosmop.parser.ast.Event;
+import rosmop.parser.ast.ROSEvent;
 import rosmop.parser.ast.Variable;
 import rosmop.util.MessageParser;
 import rosmop.util.Tool;
@@ -243,7 +243,7 @@ public class CppGenerator {
 			HashMap<CSpecification, LogicPluginShellResult> toWrite) {
 
 		for (CSpecification rvcParser : toWrite.keySet()) {
-			for (Event event : ((RVParserAdapter) rvcParser).getEventsList()) {
+			for (ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()) {
 				if(HeaderGenerator.addedTopics.get(event.getTopic()).size() > 1){
 					printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME 
 							+ "::mergedMonitorCallback_" + event.getTopic().replace("/", "") 
@@ -256,7 +256,7 @@ public class CppGenerator {
 					printParametersBindingAll(event.getTopic());
 					printer.printLn();
 
-					for(Event mergeevents : HeaderGenerator.addedTopics.get(event.getTopic())){
+					for(ROSEvent mergeevents : HeaderGenerator.addedTopics.get(event.getTopic())){
 						if(toWrite.get(rvcParser) == null || 
 								!rvcParser.getEvents().keySet().contains(mergeevents.getName())){
 							printActionCode(mergeevents);
@@ -320,7 +320,7 @@ public class CppGenerator {
 		Map<String, String> msgMapping = new HashMap<String, String>();
 		Set<String> noDoubleParam = new HashSet<String>(); //declaredName
 
-		for(Event event : HeaderGenerator.addedTopics.get(topic)){
+		for(ROSEvent event : HeaderGenerator.addedTopics.get(topic)){
 			msgMapping.putAll(MessageParser.parseMessage(event.getMsgType()));
 
 			if(event.getParameters() != null){
@@ -338,7 +338,7 @@ public class CppGenerator {
 		printer.printLn();
 		printer.printLn();
 
-		for(Event event : HeaderGenerator.addedTopics.get(topic)){
+		for(ROSEvent event : HeaderGenerator.addedTopics.get(topic)){
 			if(event.getParameters() != null){
 				for (Variable parameter : event.getParameters()) {
 					if(noDoubleParam.contains(parameter.getDeclaredName())){
@@ -363,7 +363,7 @@ public class CppGenerator {
 		}
 	}
 
-	private static void printParametersBinding(Event event) {
+	private static void printParametersBinding(ROSEvent event) {
 		// geometry_msgs::TwistStamped rv_msg;
 		// rv_msg.header = msg->header;
 		// rv_msg.twist = msg->twist;
@@ -398,7 +398,7 @@ public class CppGenerator {
 		}
 	}
 
-	private static void printActionCode(Event event) {
+	private static void printActionCode(ROSEvent event) {
 		printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB 
 				+ ".find(\"" + event.getSpecName() + "\") != monitor::" 
 				+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
@@ -412,7 +412,7 @@ public class CppGenerator {
 		printer.printLn();
 	}
 
-	private static void printRVMGeneratedFunction(Event mergeevents) {
+	private static void printRVMGeneratedFunction(ROSEvent mergeevents) {
 		// __RVC_safeTrigger_checkPoint(std::string monitored_name, double monitored_position)
 		printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB 
 				+ ".find(\"" + mergeevents.getSpecName() + "\") != monitor::" 

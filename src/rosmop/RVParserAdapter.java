@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.HashMap;
 
 import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
+import com.runtimeverification.rvmonitor.core.ast.Event;
 
 import rosmop.parser.ast.*;
 
@@ -40,10 +41,10 @@ public class RVParserAdapter implements CSpecification {
 	}
 
     @Override
-    public HashMap<String, String> getEvents() {
-        HashMap<String, String> events = new HashMap<String, String>();
+    public HashMap<String, Event> getEvents() {
+        HashMap<String, Event> events = new HashMap<String, Event>();
         for(Event event : wrapped.getEvents()) {
-            events.put(event.getName(), event.getAction());
+            events.put(event.getName(), event);
         }
         return events;
     }
@@ -53,9 +54,9 @@ public class RVParserAdapter implements CSpecification {
 	 * created by the PUBLISH keyword
 	 * @return List of Event objects
 	 */
-	public List<Event> getEventsList() {
-		ArrayList<Event> events = new ArrayList<Event>();
-		for(Event event : wrapped.getEvents()) {
+	public List<ROSEvent> getEventsList() {
+		ArrayList<ROSEvent> events = new ArrayList<ROSEvent>();
+		for(ROSEvent event : wrapped.getEvents()) {
 			events.add(event);
 			if(event.getPublishKeywordEvents() != null)
 				events.addAll(event.getPublishKeywordEvents());

@@ -261,8 +261,8 @@ Specification specification() : {
     String languageParameters = "";
     String languageDeclarations = "";
     String init = "";
-    ArrayList<Event> events = new ArrayList<Event>();
-    Event myEvent;
+    ArrayList<ROSEvent> events = new ArrayList<ROSEvent>();
+    ROSEvent myEvent;
     ArrayList<Property> properties = new ArrayList<Property>();
     Property myProperty;
 }
@@ -288,7 +288,7 @@ Specification specification() : {
     }
 }
 
-Event event(String specName) : {
+ROSEvent event(String specName) : {
     ArrayList<String> modifiers = new ArrayList<String>();
     Token modifier;
     Token name;
@@ -310,7 +310,7 @@ Event event(String specName) : {
 	(msgType = <NAMING> /*{System.out.println(msgType.image);}*/)
     "'" {pattern = pattern(pattern, ""); } "'"
     "{" {eventAction = parseMatchingCurlyBrackets();}
-    {return new Event(modifiers, name.image, definitionModifiers, eventDefinition, topic.image, 
+    {return new ROSEvent(modifiers, name.image, definitionModifiers, eventDefinition, topic.image, 
         msgType.image, pattern, eventAction, specName);}
 }
 
