@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
-import rosmop.parser.ast.Event;
+import rosmop.parser.ast.ROSEvent;
 import rosmop.util.Tool;
 
 import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
@@ -22,8 +22,8 @@ public class HeaderGenerator {
 
 	protected final static SourcePrinter printer = new SourcePrinter();
 	static boolean hasInit = false;
-	static HashMap<String, ArrayList<Event>> addedTopics = 
-			new HashMap<String, ArrayList<Event>>();
+	static HashMap<String, ArrayList<ROSEvent>> addedTopics = 
+			new HashMap<String, ArrayList<ROSEvent>>();
 
 	/**
 	 * Gathers all the information for the monitor header file and prints necessary parts
@@ -143,9 +143,9 @@ public class HeaderGenerator {
 	private static void populateAddedTopics(
 			HashMap<CSpecification, LogicPluginShellResult> toWrite) {
 		for (CSpecification rvcParser : toWrite.keySet()) {
-			for(Event event : ((RVParserAdapter) rvcParser).getEventsList()){
+			for(ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()){
 				if(!addedTopics.containsKey(event.getTopic())){
-					addedTopics.put(event.getTopic(), new ArrayList<Event>());
+					addedTopics.put(event.getTopic(), new ArrayList<ROSEvent>());
 					addedTopics.get(event.getTopic()).add(event);
 				}else {
 					addedTopics.get(event.getTopic()).add(event);
