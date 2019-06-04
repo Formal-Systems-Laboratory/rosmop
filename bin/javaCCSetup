@@ -1,0 +1,9 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+(mkdir -p "$DIR/../ext" \
+  && cd "$DIR/../ext" \
+  && wget https://javacc.org/downloads/javacc-5.0.tar.gz \
+  && tar xzvf javacc-5.0.tar.gz \
+  && rm -rf javacc-5.0.tar.gz )

@@ -2,6 +2,7 @@
 
 SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DIR="$(dirname $SHDIR)"
+JAVACC="$DIR/ext/javacc-5.0/bin/javacc"
 
 cd $DIR/src/rosmop/parser/main_parser
-javacc rosmopparser.jj
+$JAVACC rosmopparser.jj

@@ -12,7 +12,7 @@
     <path id="rosmop.classpath">
 		<fileset dir="${env.RVMONITOR}" includes="**/*.jar"/>
     </path>
-	
+
 <!--checking if for windows and non windows OS-->
 	<condition property="isUnix">
 		<os family="unix" />
@@ -21,6 +21,13 @@
 	<condition property="isWindows">
 		<os family="windows" />
 	</condition>
+
+        <condition property="noJavaCC">
+          <not>
+            <available file="${user.dir}/ext/javacc-5.0" />
+          </not>
+        </condition>
+
 
 	<!-- if the OS is windows call the target run.script.windows -->
 	<target name="ifNotUnix" if="isWindows">
@@ -31,11 +38,16 @@
 	</target>
 
 	<!-- if the OS is not windows call the target run.script.unix-->
-	<target name="ifUnix" if="isUnix">
+	<target depends="initJavaCC" name="ifUnix" if="isUnix">
 		<echo>Calling parser</echo>
 	   	<exec executable="bin/parsergen" failonerror="true"/>
 	</target>
-	
+
+        <target name="initJavaCC" if="noJavaCC">
+          <mkdir dir="${user.dir}/ext" />
+          <exec executable="${user.dir}/bin/javaCCSetup" failonerror="true"/>
+        </target>
+
     <target name="init">
         <mkdir dir="classes"/>
     </target>
@@ -43,6 +55,7 @@
     <target name="clean">
         <delete dir="classes"/>
 		<delete dir="lib"/>
+		<delete dir="ext"/>
     </target>
 
     <target depends="clean" name="cleanall"/>
@@ -53,7 +66,7 @@
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac destdir="classes" srcdir="src" source="${source}" target="${target}" includeantruntime="false" classpathref="rosmop.classpath" />
     </target>
-	
+
 	<target name="makejar" description="Create Jar file" depends="ifUnix, ifNotUnix, build">
 		<mkdir dir="lib" />
         <jar jarfile="lib/ROSMOP.jar" basedir="classes" />
