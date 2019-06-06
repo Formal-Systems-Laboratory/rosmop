@@ -42,6 +42,8 @@ public class Main {
 
 	static String logicPluginDirPath, pathToOutputNoExt;
 
+	private static boolean monitorAsRosNode = false;
+
 	/**
 	 *	Possible parameters:
 	 *	1- only one .rv file
@@ -51,79 +53,90 @@ public class Main {
 	 * @param args One or list of .rv file(s)
 	 */
 	public static void main(String[] args) {
+		String monitorAsNodeFlag = "-monitorAsRosNode";
 		try {
 
-			if(args.length == 0){
+			if(args.length == 0 || (args.length == 1 && args[0].equals(monitorAsNodeFlag))) {
 				throw new ROSMOPException("Make sure you provide at least "
 						+ "one .rv file or a folder of .rv files.");
 			}
 
 			logicPluginDirPath = readLogicPluginDir();
 
-			String pathToFile = "";
-			File fileToGetPath;
-			MonitorFile readyToProcess;
-			/*
-			1- "." means current directory (all .rv files in the directory)
-			2- if it ends with "/" or "\" process the given directory (all .rv files in the 
-				directory)
-			3- one .rv file
-			 */
-			if (args.length == 1) {
-				if(args[0].equalsIgnoreCase(".")){
-					fileToGetPath = new File(System.getProperty("user.dir"));
-					pathToFile = fileToGetPath.getAbsolutePath();
-					//					/home/cans-u/workspace/rosmop
-					//					System.out.println(pathToFile);
-					pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
-					//					System.out.println(pathToOutputNoExt);
-					processDirOfFiles(pathToFile);
-				} else if(args[0].endsWith(File.separator)){
-					fileToGetPath = new File(args[0]);
-					pathToFile = fileToGetPath.getAbsolutePath();
-					//					/home/cans-u/Desktop
-					//					System.out.println(pathToFile);
-					pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
-					//					System.out.println(pathToOutputNoExt);
-					processDirOfFiles(pathToFile);
-				} else {
-					if (!checkArguments(args)) {
-						throw new ROSMOPException("Unrecognized file type! The ROSMOP "
-								+ "specification file should have .rv as the extension.");
-					}
-					fileToGetPath = new File(args[0]);
-					pathToFile = fileToGetPath.getAbsolutePath();
-					//					/home/cans-u/Desktop/deneme.rv
-					//					System.out.println(pathToFile);
-					pathToOutputNoExt = pathToFile.substring(0, 
-							pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
-					//					System.out.println(pathToOutputNoExt);
-					readyToProcess = ROSMOPParser.parse(pathToFile);
-					List<MonitorFile> readyMonitor = new ArrayList<MonitorFile>();
-					readyMonitor.add(readyToProcess);
-					process(readyMonitor);
-				}
+			if(args[0].equals(monitorAsNodeFlag)) {
+			    monitorAsRosNode = true;
+				processFileNames(Arrays.copyOfRange(args, 1, args.length));
+			} else {
+				processFileNames(args);
 			}
-			/*
-			 * multiple .rv files 
-			 */
-			else {
-				// output file is going to be written in the first file's dir
-				fileToGetPath = new File(args[0]);
-				pathToFile = fileToGetPath.getAbsolutePath();
-				//					/home/cans-u/Desktop/deneme.rv
-				//				System.out.println(pathToFile);
-				pathToOutputNoExt = pathToFile.substring(0, 
-						pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
-				//				System.out.println(pathToOutputNoExt);
-				processMultipleFiles(args);
-			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	
+	private static void processFileNames(String[] inputSpecFiles) throws ROSMOPException {
+		String pathToFile = "";
+		File fileToGetPath;
+		MonitorFile readyToProcess;
+			/*
+			1- "." means current directory (all .rv files in the directory)
+			2- if it ends with "/" or "\" process the given directory (all .rv files in the
+				directory)
+			3- one .rv file
+			 */
+		if (inputSpecFiles.length == 1) {
+			if(inputSpecFiles[0].equalsIgnoreCase(".")){
+				fileToGetPath = new File(System.getProperty("user.dir"));
+				pathToFile = fileToGetPath.getAbsolutePath();
+				//					/home/cans-u/workspace/rosmop
+				//					System.out.println(pathToFile);
+				pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
+				//					System.out.println(pathToOutputNoExt);
+				processDirOfFiles(pathToFile);
+			} else if(inputSpecFiles[0].endsWith(File.separator)){
+				fileToGetPath = new File(inputSpecFiles[0]);
+				pathToFile = fileToGetPath.getAbsolutePath();
+				//					/home/cans-u/Desktop
+				//					System.out.println(pathToFile);
+				pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
+				//					System.out.println(pathToOutputNoExt);
+				processDirOfFiles(pathToFile);
+			} else {
+				if (!checkArguments(inputSpecFiles)) {
+					throw new ROSMOPException("Unrecognized file type! The ROSMOP "
+							+ "specification file should have .rv as the extension.");
+				}
+				fileToGetPath = new File(inputSpecFiles[0]);
+				pathToFile = fileToGetPath.getAbsolutePath();
+				//					/home/cans-u/Desktop/deneme.rv
+				//					System.out.println(pathToFile);
+				pathToOutputNoExt = pathToFile.substring(0,
+						pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
+				//					System.out.println(pathToOutputNoExt);
+				readyToProcess = ROSMOPParser.parse(pathToFile);
+				List<MonitorFile> readyMonitor = new ArrayList<MonitorFile>();
+				readyMonitor.add(readyToProcess);
+				process(readyMonitor);
+			}
+		}
+		/*
+		 * multiple .rv files
+		 */
+		else {
+			// output file is going to be written in the first file's dir
+			fileToGetPath = new File(inputSpecFiles[0]);
+			pathToFile = fileToGetPath.getAbsolutePath();
+			//					/home/cans-u/Desktop/deneme.rv
+			//				System.out.println(pathToFile);
+			pathToOutputNoExt = pathToFile.substring(0,
+					pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
+			//				System.out.println(pathToOutputNoExt);
+			processMultipleFiles(inputSpecFiles);
+		}
+	}
+
+
 	/**
 	 * Wraps the parsed monitor files as CSpecifications to send them to logic repository
 	 * (unless raw monitor) and then output the .h and .cpp files 
