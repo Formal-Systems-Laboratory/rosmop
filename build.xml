@@ -44,7 +44,7 @@
 	</target>
 
         <target name="initJavaCC" if="noJavaCC">
-          <mkdir dir="${user.dir}/ext" />
+          <mkdir dir="${user.dir}/.build" />
           <exec executable="${user.dir}/bin/javaCCSetup" failonerror="true"/>
         </target>
 
@@ -55,7 +55,7 @@
     <target name="clean">
         <delete dir="classes"/>
 		<delete dir="lib"/>
-		<delete dir="ext"/>
+		<delete dir=".build"/>
     </target>
 
     <target depends="clean" name="cleanall"/>
