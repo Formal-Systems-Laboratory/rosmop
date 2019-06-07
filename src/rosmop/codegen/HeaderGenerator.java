@@ -25,79 +25,85 @@ public class HeaderGenerator {
 	static HashMap<String, ArrayList<ROSEvent>> addedTopics = 
 			new HashMap<String, ArrayList<ROSEvent>>();
 
+
+
 	/**
 	 * Gathers all the information for the monitor header file and prints necessary parts
 	 * @param toWrite Collection of specifications and their formalisms if existent
 	 * @param outputPath The location to create the output header file
+	 * @param monitorAsNode
 	 * @throws FileNotFoundException
 	 * @throws ROSMOPException
 	 */
-	public static void generateHeader(HashMap<CSpecification, LogicPluginShellResult> toWrite, 
-			String outputPath) throws FileNotFoundException, ROSMOPException{
+	public static void generateHeader(HashMap<CSpecification, LogicPluginShellResult> toWrite,
+									  String outputPath, boolean monitorAsNode) throws FileNotFoundException, ROSMOPException{
 
 		String hDef = "RVCPP_RVMONITOR_H";
 
 		printer.printLn("#ifndef " + hDef);
 		printer.printLn("#define " + hDef + "\n");
 
-		printRosIncludes();
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			printer.printLn(rvcParser.getIncludes());
 		}
-
-		printer.printLn();
-		printer.printLn("namespace rv");
-		printer.printLn("{");
-		printer.indent();
-
-		// Inner monitor class declaration
-		printer.printLn("class " + GeneratorUtil.MONITOR_CLASS_NAME);
-		printer.printLn("{");
-		printer.indent();
-
-		//public methods
-		printer.printLn("public:");
-		printer.indent();
-
-		//Constructor
-		printer.printLn(GeneratorUtil.MONITOR_CLASS_NAME 
-				+ "(std::string topic, ros::SubscribeOptions &" 
-				+ GeneratorUtil.SUBSCRIBE_OPTIONS + ");");
-
-		//Deconstructor
-		printer.printLn("~" + GeneratorUtil.MONITOR_CLASS_NAME + "();");
-		printer.printLn();
-
 		populateAddedTopics(toWrite);
+		if(! monitorAsNode) {
+			printRosIncludes();
 
-		generateCallbacks(toWrite);
+			printer.printLn();
+			printer.printLn("namespace rv");
+			printer.printLn("{");
+			printer.indent();
 
-		printer.printLn();
+			// Inner monitor class declaration
+			printer.printLn("class " + GeneratorUtil.MONITOR_CLASS_NAME);
+			printer.printLn("{");
+			printer.indent();
 
-		printer.unindent();
-		printer.printLn("private:");
-		printer.indent();
+			//public methods
+			printer.printLn("public:");
+			printer.indent();
 
-		//        std::string topic_name;
-		//        boost::shared_ptr<rv::ServerManager> server_manager;
-		printer.printLn("std::string " + GeneratorUtil.TOPIC_PTR_NAME + ";");
-		printer.printLn("boost::shared_ptr<rv::ServerManager> " 
-				+ GeneratorUtil.SERVERMANAGER_PTR_NAME + ";");
-		printer.printLn();
+			//Constructor
+			printer.printLn(GeneratorUtil.MONITOR_CLASS_NAME
+					+ "(std::string topic, ros::SubscribeOptions &"
+					+ GeneratorUtil.SUBSCRIBE_OPTIONS + ");");
 
-		printer.unindent();
+			//Deconstructor
+			printer.printLn("~" + GeneratorUtil.MONITOR_CLASS_NAME + "();");
+			printer.printLn();
 
-		printer.unindent();
-		printer.printLn("};");
-		printer.unindent();
 
-		printer.printLn("}");
-		printer.unindent();
+			generateCallbacks(toWrite);
 
-		printer.printLn();
+			printer.printLn();
 
+			printer.unindent();
+			printer.printLn("private:");
+			printer.indent();
+
+			//        std::string topic_name;
+			//        boost::shared_ptr<rv::ServerManager> server_manager;
+			printer.printLn("std::string " + GeneratorUtil.TOPIC_PTR_NAME + ";");
+			printer.printLn("boost::shared_ptr<rv::ServerManager> "
+					+ GeneratorUtil.SERVERMANAGER_PTR_NAME + ";");
+			printer.printLn();
+
+			printer.unindent();
+
+			printer.unindent();
+			printer.printLn("};");
+			printer.unindent();
+
+			printer.printLn("}");
+			printer.unindent();
+
+			printer.printLn();
+
+		} else {
+			generateCallbacks(toWrite);
+		}
 		printer.printLn("#endif");
-
 		Tool.writeFile(printer.getSource(), outputPath);
 	}
 

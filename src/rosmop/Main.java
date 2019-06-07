@@ -143,7 +143,7 @@ public class Main {
 	 * @param readyMonitors A list of MonitorFiles which are parsed specifications
 	 */
 	private static void process(List<MonitorFile> readyMonitors){
-		HashMap<CSpecification, LogicRepositoryData> rvcParser = 
+		HashMap<CSpecification, LogicRepositoryData> rvcParser =
 				new HashMap<CSpecification, LogicRepositoryData>();
 
 		try {
@@ -356,8 +356,8 @@ public class Main {
 		}
 
 		try {
-			HeaderGenerator.generateHeader(toWrite, outputPath+".h");
-			CppGenerator.generateCpp(toWrite, outputPath+".cpp");
+			HeaderGenerator.generateHeader(toWrite, outputPath+".h", monitorAsRosNode);
+			CppGenerator.generateCpp(toWrite, outputPath+".cpp", monitorAsRosNode);
 		} catch (ROSMOPException e) {
 			e.printStackTrace();
 		}

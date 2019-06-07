@@ -26,74 +26,116 @@ public class CppGenerator {
 
 	protected final static SourcePrinter printer = new SourcePrinter();
 
-	public static void generateCpp(HashMap<CSpecification, LogicPluginShellResult> toWrite, 
-			String outputPath) throws FileNotFoundException, ROSMOPException{
+	public static void generateCpp(HashMap<CSpecification, LogicPluginShellResult> toWrite,
+								   String outputPath, boolean monitorAsNode) throws FileNotFoundException, ROSMOPException{
 		printer.printLn("#include \"rvmonitor.h\"");
 
-		printer.printLn();
-		printer.printLn("using namespace std;");
-		printer.printLn("namespace rv");
-		printer.printLn("{");
-		printer.indent();
-
-		// Print declared variables 
-		printer.printLn("// Declarations of shared variables");
-		for (CSpecification rvcParser : toWrite.keySet()) {
-			printer.printLn(rvcParser.getDeclarations());
+		if(!monitorAsNode) {
 
 			printer.printLn();
-
-			if(toWrite.get(rvcParser) != null){
-				printer.printLn(
-						(String) toWrite.get(rvcParser).properties.get("state declaration"));
-				printer.printLn(
-						(String) toWrite.get(rvcParser).properties.get("categories"));
-				printer.printLn(
-						(String) toWrite.get(rvcParser).properties.get("monitoring body"));
-				printer.printLn();
-			}
-		}
-
-		printMonitorNamespace(toWrite);
-
-		// print init()
-		if(HeaderGenerator.hasInit){
-			printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME + "::init(){\n");
+			printer.printLn("using namespace std;");
+			printer.printLn("namespace rv");
+			printer.printLn("{");
 			printer.indent();
 
+			// Print declared variables
+			printer.printLn("// Declarations of shared variables");
 			for (CSpecification rvcParser : toWrite.keySet()) {
-				if(!((RVParserAdapter) rvcParser).getInit().isEmpty()){
-					printer.printLn(((RVParserAdapter) rvcParser).getInit());
+				printer.printLn(rvcParser.getDeclarations());
+
+				printer.printLn();
+
+				if (toWrite.get(rvcParser) != null) {
+					printer.printLn(
+							(String) toWrite.get(rvcParser).properties.get("state declaration"));
+					printer.printLn(
+							(String) toWrite.get(rvcParser).properties.get("categories"));
+					printer.printLn(
+							(String) toWrite.get(rvcParser).properties.get("monitoring body"));
+					printer.printLn();
 				}
 			}
 
+			printMonitorNamespace(toWrite);
+
+			// print init()
+			if (HeaderGenerator.hasInit) {
+				printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME + "::init(){\n");
+				printer.indent();
+
+				for (CSpecification rvcParser : toWrite.keySet()) {
+					if (!((RVParserAdapter) rvcParser).getInit().isEmpty()) {
+						printer.printLn(((RVParserAdapter) rvcParser).getInit());
+					}
+				}
+
+				printer.unindent();
+				printer.printLn("}");
+				printer.printLn();
+			}
+
+			// print reset()
+			for (CSpecification rvcParser : toWrite.keySet()) {
+				if (toWrite.get(rvcParser) != null) {
+					printer.printLn(((String) toWrite.get(rvcParser).properties.get("reset"))
+							.replace("void\n__RVC_", "void "
+									+ GeneratorUtil.MONITOR_CLASS_NAME + "::__RVC_"));
+					printer.printLn();
+				}
+			}
+
+			// print constructor
+			printConstructor(toWrite);
+
+			// print monitor callback functions
+			printMonitorCallbacks(toWrite, false);
+
+			printer.printLn();
 			printer.unindent();
 			printer.printLn("}");
 			printer.printLn();
+		} else {
+			printMonitorCallbacks(toWrite, true);
+		 	printMain(toWrite);
 		}
-
-		// print reset()
-		for (CSpecification rvcParser : toWrite.keySet()) {
-			if(toWrite.get(rvcParser) != null){
-				printer.printLn(((String) toWrite.get(rvcParser).properties.get("reset"))
-						.replace("void\n__RVC_", "void " 
-						+ GeneratorUtil.MONITOR_CLASS_NAME + "::__RVC_"));
-				printer.printLn();
-			}
-		}
-
-		// print constructor
-		printConstructor(toWrite);
-
-		// print monitor callback functions
-		printMonitorCallbacks(toWrite);
-
-		printer.printLn();
-		printer.unindent();
-		printer.printLn("}");
-		printer.printLn();
 
 		Tool.writeFile(printer.getSource(), outputPath);
+	}
+
+	private static void printMain(HashMap<CSpecification, LogicPluginShellResult> toWrite) {
+	   printer.printLn("int main(int argc, char ** argv)");
+	   printer.printLn("{");
+	   printer.indent();
+
+	   printer.printLn("ros::init(argc, argv, \"rvmonitor\");");
+
+		for (CSpecification rvcParser : toWrite.keySet()) {
+			for (ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()) {
+                String handleName = (event.getTopic() + "Handle")
+						.replace("/", "")
+						.replace("_", "");
+
+                String subscriberName = (event.getTopic() + "Subscriber")
+						.replace("/", "")
+						.replace("_", "");
+
+                printer.printLn("ros::NodeHandle " + handleName + ";");
+                printer.printLn("ros::Subscriber " + subscriberName + " = ");
+                printer.indent();
+                String topicName = event.getTopic().replace("/", "");
+                printer.print(handleName + ".subscribe(" + "\"" + topicName + "\"" + " , 1000, ");
+				if (HeaderGenerator.addedTopics.get(event.getTopic()).size() > 1)
+					printer.printLn("mergedMonitorCallback_" + topicName + ");");
+				else
+					printer.printLn("monitorCallback_" + event.getName() +");");
+				printer.printLn("");
+				printer.unindent();
+			}
+		}
+		printer.printLn("ros::spin();");
+		printer.unindent();
+		printer.printLn("return 0;");
+		printer.printLn("}");
 	}
 
 	private static void printMonitorNamespace(
@@ -240,15 +282,21 @@ public class CppGenerator {
 	}
 
 	private static void printMonitorCallbacks(
-			HashMap<CSpecification, LogicPluginShellResult> toWrite) {
+			HashMap<CSpecification, LogicPluginShellResult> toWrite, boolean monitorAsNode) {
 
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			for (ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()) {
 				if(HeaderGenerator.addedTopics.get(event.getTopic()).size() > 1){
-					printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME 
-							+ "::mergedMonitorCallback_" + event.getTopic().replace("/", "") 
-							+ "(const " + event.classifyMsgType() 
-							+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
+
+				    if(!monitorAsNode)
+                        printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME
+                                + "::mergedMonitorCallback_" + event.getTopic().replace("/", "")
+                                + "(const " + event.classifyMsgType()
+                                + "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
+				    else
+						printer.printLn("void " + "mergedMonitorCallback_" + event.getTopic().replace("/", "")
+								+ "(const " + event.classifyMsgType()
+								+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
 					printer.printLn("{");
 					printer.printLn();
 					printer.indent();
@@ -259,15 +307,17 @@ public class CppGenerator {
 					for(ROSEvent mergeevents : HeaderGenerator.addedTopics.get(event.getTopic())){
 						if(toWrite.get(rvcParser) == null || 
 								!rvcParser.getEvents().keySet().contains(mergeevents.getName())){
-							printActionCode(mergeevents);
+							printActionCode(mergeevents, monitorAsNode);
 						}else{
-							printRVMGeneratedFunction(mergeevents);
+							printRVMGeneratedFunction(mergeevents, monitorAsNode);
 						}
 						printer.printLn();
 					}
 					HeaderGenerator.addedTopics.get(event.getTopic()).clear();
 
-					publishAndSerializeMsg();
+					if(!monitorAsNode) {
+						publishAndSerializeMsg();
+					}
 
 					printer.unindent();
 					printer.printLn();
@@ -275,10 +325,17 @@ public class CppGenerator {
 					printer.printLn();
 
 				}else if(HeaderGenerator.addedTopics.get(event.getTopic()).size() > 0){
-					printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME 
-							+ "::monitorCallback_" + event.getName() 
-							+ "(const " + event.classifyMsgType() 
-							+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
+
+				    if(!monitorAsNode)
+                        printer.printLn("void " + GeneratorUtil.MONITOR_CLASS_NAME
+                                + "::monitorCallback_" + event.getName()
+                                + "(const " + event.classifyMsgType()
+                                + "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
+				    else
+						printer.printLn("void " + "monitorCallback_" + event.getName()
+								+ "(const " + event.classifyMsgType()
+								+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ")");
+
 					printer.printLn("{");
 					printer.printLn();
 					printer.indent();
@@ -288,14 +345,15 @@ public class CppGenerator {
 
 					if(toWrite.get(rvcParser) == null || 
 							!rvcParser.getEvents().keySet().contains(event.getName())){
-						printActionCode(event);
+						printActionCode(event, monitorAsNode);
 					}else{
-						printRVMGeneratedFunction(event);
+						printRVMGeneratedFunction(event, monitorAsNode);
 					}
 					printer.printLn();
 					HeaderGenerator.addedTopics.get(event.getTopic()).remove(event);
 
-					publishAndSerializeMsg();
+					if(!monitorAsNode)
+						publishAndSerializeMsg();
 
 					printer.unindent();
 					printer.printLn();
@@ -398,28 +456,38 @@ public class CppGenerator {
 		}
 	}
 
-	private static void printActionCode(ROSEvent event) {
-		printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB 
-				+ ".find(\"" + event.getSpecName() + "\") != monitor::" 
-				+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
-		//		printer.printLn("{");
-		//		printer.indent();
+	private static void printActionCode(ROSEvent event, boolean monitorAsNode) {
+		if(!monitorAsNode) {
+			printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB
+					+ ".find(\"" + event.getSpecName() + "\") != monitor::"
+					+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
+			//		printer.printLn("{");
+			//		printer.indent();
+		}
 
-		printer.print(event.getAction());
+		if(monitorAsNode) {
+			printer.indent();
+			printer.print(event.getAction());
+			printer.unindent();
+		} else {
+			printer.print(event.getAction());
+		}
 		printer.printLn();
 		//		printer.unindent();
 		//		printer.printLn("}");
 		printer.printLn();
 	}
 
-	private static void printRVMGeneratedFunction(ROSEvent mergeevents) {
+	private static void printRVMGeneratedFunction(ROSEvent mergeevents, boolean monitorAsNode) {
 		// __RVC_safeTrigger_checkPoint(std::string monitored_name, double monitored_position)
-		printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB 
-				+ ".find(\"" + mergeevents.getSpecName() + "\") != monitor::" 
-				+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
-		printer.printLn("{");
-		printer.printLn();
-		printer.indent();
+		if(!monitorAsNode) {
+			printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB
+					+ ".find(\"" + mergeevents.getSpecName() + "\") != monitor::"
+					+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
+			printer.printLn("{");
+			printer.printLn();
+			printer.indent();
+		}
 
 		printer.print("__RVC_" + mergeevents.getSpecName() + "_" + mergeevents.getName() + "(");
 		if(mergeevents.getParameters() != null && mergeevents.getParameters().size() != 0){
@@ -430,9 +498,11 @@ public class CppGenerator {
 		}
 		printer.printLn(");");
 
-		printer.unindent();
-		printer.printLn();
-		printer.printLn("}");
+		if(!monitorAsNode) {
+			printer.unindent();
+			printer.printLn();
+			printer.printLn("}");
+		}
 		printer.printLn();		
 	}
 
