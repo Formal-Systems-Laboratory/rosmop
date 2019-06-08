@@ -1,9 +1,17 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+JAVACC_CHECKSUM=aab2c3e2f37648b9e708e6bad4c8b544cba63b66f1791907e6e3f89609b27150
 
 (mkdir -p "$DIR/../.build" \
   && cd "$DIR/../.build" \
-  && wget https://javacc.org/downloads/javacc-5.0.tar.gz \
-  && tar xzvf javacc-5.0.tar.gz \
-  && rm -rf javacc-5.0.tar.gz )
+  && echo "Donloading JavaCC ..." \
+  && wget --quiet https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/javacc/5.0-8/javacc_5.0.orig.tar.gz \
+  && echo "Verifying Integrity ..." \
+  && sha256sum -c <(echo "$JAVACC_CHECKSUM javacc_5.0.orig.tar.gz") \
+  && tar xzf javacc_5.0.orig.tar.gz \
+  && rm -rf javacc_5.0.orig.tar.gz \
+  && (cd "$DIR/../.build/javacc-5.0.orig" \
+       && echo "Building Javacc ..." \
+       && ant))
+
