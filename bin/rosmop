@@ -17,11 +17,17 @@ function generate(){
 
 function rvcompile(){
 	catkin_make
-	source devel/setup.sh
+        source devel/setup.sh
 }
 
 if [ -f "$DIR/lib/ROSMOP.jar" ];
 then
+        if [ $1 == "-monitorAsNode" ];
+        then
+                FLAGS=$1
+                shift
+        fi
+
 	FILENAME=$1
 	case "$FILENAME" in
 	*/)
@@ -34,7 +40,7 @@ then
 #		echo "no slash $FILENAME"
 		;;
 	esac
-		
+
 	echo "Monitor generation..."
 
 	RES=$(generate $PARAMS)
@@ -42,16 +48,19 @@ then
 
 	if [ -f "$FILENAME/rvmonitor.cpp" ];
 	then
-		mv $FILENAME/rvmonitor.cpp $RVMASTERSRC
-		mv $FILENAME/rvmonitor.h $RVMASTERINC
+                if [ ! "$FLAGS" == "-monitorAsNode" ];
+                then
+		        mv $FILENAME/rvmonitor.cpp $RVMASTERSRC
+		        mv $FILENAME/rvmonitor.h $RVMASTERINC
 
-		echo "Generated files are copied."
-		echo "Compiling RVMaster..."
+		        echo "Generated files are copied."
+		        echo "Compiling RVMaster..."
 
-		export -f rvcompile
-		gnome-terminal --working-directory=$RVMASTER --execute bash -c "rvcompile ; bash"
+		        export -f rvcompile
+		        gnome-terminal --working-directory=$RVMASTER --execute bash -c "rvcompile ; bash"
 
-		echo "Check compilation status on the new terminal."
+		        echo "Check compilation status on the new terminal."
+                fi
 	else
 		echo "Something went wrong. Monitors are not generated."
 	fi

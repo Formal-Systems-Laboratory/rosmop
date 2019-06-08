@@ -53,7 +53,7 @@ public class Main {
 	 * @param args One or list of .rv file(s)
 	 */
 	public static void main(String[] args) {
-		String monitorAsNodeFlag = "-monitorAsRosNode";
+		String monitorAsNodeFlag = "-monitorAsNode";
 		try {
 
 			if(args.length == 0 || (args.length == 1 && args[0].equals(monitorAsNodeFlag))) {
