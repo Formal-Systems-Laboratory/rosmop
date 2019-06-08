@@ -24,7 +24,7 @@
 
         <condition property="noJavaCC">
           <not>
-            <available file="${user.dir}/ext/javacc-5.0" />
+            <available file="${user.dir}/.build/javacc-5.0" />
           </not>
         </condition>
 
