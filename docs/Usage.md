@@ -4,6 +4,8 @@
  * One event specification (.rv) file: `rosmop a.rv`
  * Multiple event specification (.rv) files: `rosmop a.rv b.rv ... z.rv`
  * Folder of *only* event specification (.rv) files: `rosmop specs/`
+ * Monitor As a Standalone Node that can run without rosrv: `rosmop
+   -monitorAsNode a.rv`
 
 
 ## Event specifications
@@ -44,7 +46,7 @@ The user uses the parameters (s)he specified in the action code to check or
 (along with their types) and the variable matching in the specified pattern
 should be compatible with the given message type. Furthermore, the variable
 names of the parameters and the ones in the pattern should match each other. If
-there is such an invalid matching, the code will not be generated correctly. 
+there is such an invalid matching, the code will not be generated correctly.
 
 
 ## Example
@@ -54,10 +56,10 @@ In this specification, there are two events, `checkPosition` and `safeTrigger`, 
 
 ```c++
 #include <stdint.h>
- 
+
 safeTrigger() {
        bool isSafeTrigger = false;
- 
+
        event checkPosition(std::string monitored_name, double monitored_position) /landshark/joint_states sensor_msgs/JointState '{name[1]:monitored_name, position[1]:monitored_position}'
        {
 		if(monitored_name=="turret_tilt")
@@ -71,7 +73,7 @@ safeTrigger() {
 			}
 		}
        }
- 
+
        event safeTrigger() /landshark_control/trigger landshark_msgs/PaintballTrigger '{}'
        {
 		if(!isSafeTrigger)
