@@ -1,6 +1,3 @@
 .svn*
 *~
-classes/
-lib/
-.build/
-ROSMOPParser.java
+target/
