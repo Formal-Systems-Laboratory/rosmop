@@ -1,11 +1,11 @@
 # Installing ROSMOP
 
-Here are instructions for installing and building ROSMOP by checking out its 
+Here are instructions for installing and building ROSMOP by checking out its
 source code on GitHub.
 
 ## Prerequisites
 
-ROSMOP requires Git, JDK, Ant, JavaCC and RV-Monitor.
+ROSMOP requires Git, JDK and Maven.
 
 1. [Git](http://git-scm.com/book/en/Getting-Started-Installing-Git)
 v.1.8 or higher
@@ -13,34 +13,25 @@ v.1.8 or higher
 2. [JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 v.7 or higher
  * Check Java is installed properly: run `java -version` from a terminal.
-3. [Ant](http://ant.apache.org/bindownload.cgi)
-v.1.8 or higher
- * Check Ant is installed properly: run `ant -version` from a terminal.
-4. [JavaCC](https://javacc.java.net/)
-v.5 or higher
- * Check JavaCC is installed properly: run `javacc` from a terminal.
-5. [RV-Monitor](https://www.runtimeverification.com/monitor)
-v.1.3 or higher
- * Check RV-Monitor is installed properly: run `rv-monitor -version` from a
-   terminal.
- * Add `RVMONITOR` as an environment variable and set it to 
-   `<RV-Monitor_HOME>/lib`.
+3. [Maven](https://maven.apache.org)
+ * We recommend version 3.3 or higher. Building with a version lower than 3.3
+   may also work, but has not been tested.
 
 ## Install and Build
 
-ROSMOP currently works integrated with 
+ROSMOP currently works integrated with
 [ROSRV](http://fsl.cs.illinois.edu/ROSRV). If you have already checked out the
-ROSRV source code by using the `--recursive` option, you do not have to check 
+ROSRV source code by using the `--recursive` option, you do not have to check
 out the ROSMOP source code again (i.e. skip step 1).
 
-1. Run `git clone https://github.com/runtimeverification/rosmop.git` to check 
+1. Run `git clone https://github.com/runtimeverification/rosmop.git` to check
 out the source code from the Github repository.
 
 2. Add `<rosmop_HOME>/bin` to your PATH.
 
 3. Run
  * `cd <rosmop_HOME>`
- * `ant`
+ * `mvn package`
 
 4. Make sure the build is successful.
 
