@@ -34,7 +34,7 @@ import rosmop.util.Tool;
 
 /**
  * @author Cansu Erdogan
- * 
+ *
  * Entry point when calling ROSMOP.jar
  *
  */
@@ -48,7 +48,7 @@ public class Main {
 	 *	Possible parameters:
 	 *	1- only one .rv file
 	 *	2- a list of .rv files
-	 *	3- a directory of .rv files -- not recursive, there shouldn't be any other files in the 
+	 *	3- a directory of .rv files -- not recursive, there shouldn't be any other files in the
 	 *	directory
 	 * @param args One or list of .rv file(s)
 	 */
@@ -139,7 +139,7 @@ public class Main {
 
 	/**
 	 * Wraps the parsed monitor files as CSpecifications to send them to logic repository
-	 * (unless raw monitor) and then output the .h and .cpp files 
+	 * (unless raw monitor) and then output the .h and .cpp files
 	 * @param readyMonitors A list of MonitorFiles which are parsed specifications
 	 */
 	private static void process(List<MonitorFile> readyMonitors){
@@ -151,20 +151,20 @@ public class Main {
 				CSpecification cspec = (CSpecification) new RVParserAdapter(mf);
 				//raw monitor
 				if(cspec.getFormalism() != null){
-					LogicRepositoryData cmgDataOut = 
+					LogicRepositoryData cmgDataOut =
 							sendToLogicRepository(cspec, logicPluginDirPath);
 					rvcParser.put(cspec, cmgDataOut);
 				} else
 					rvcParser.put(cspec, null);
 			}
 
-			outputCode(rvcParser, pathToOutputNoExt); 
+			outputCode(rvcParser, pathToOutputNoExt);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	/** 
+	/**
 	 * Takes a list of .rv files and sends them to the parser
 	 * Once all the specification files are parsed, makes sure there are no duplicate
 	 * event names or field declarations, and if so sends them to {@link Main#process(List)}
@@ -182,17 +182,17 @@ public class Main {
 			for (String arg : args) {
 				MonitorFile f = ROSMOPParser.parse(arg);
 
-				/* In case of multiple .rv files as input, all of the specifications 
+				/* In case of multiple .rv files as input, all of the specifications
 				 * are gathered and checked for duplicate event names and field declarations;
 				 * they should have unique names.*/
 				for (Specification spec : f.getSpecifications()) {
 					for (ROSEvent event : spec.getEvents()) {
-						if (!events.add(event.getName())) 
+						if (!events.add(event.getName()))
 							throw new ROSMOPException("Duplicate event names");
 					}
 
 					for (Variable var : spec.getSpecDeclarations()) {
-						if(!declarations.add(var.getDeclaredName())) 
+						if(!declarations.add(var.getDeclaredName()))
 							throw new ROSMOPException("Duplicate field declarations");
 					}
 				}
@@ -209,7 +209,7 @@ public class Main {
 	/**
 	 * Called when the input is a directory (ends with a file separator)
 	 * After handling directory structure, calls {@link Main#processMultipleFiles(String[])}
-	 * 
+	 *
 	 * @param arg Name of the input directory
 	 * @throws ROSMOPException
 	 */
@@ -276,13 +276,13 @@ public class Main {
 	}
 
 	/**
-	 * Sends the specification to the logic repository. 
+	 * Sends the specification to the logic repository.
 	 * The appropriate logic repository plugins are run on the code.
-	 * @param rvcParser Wrapped AST classes of parsed specification file 
+	 * @param rvcParser Wrapped AST classes of parsed specification file
 	 * @param logicPluginDirPath The location at which to find the logic repository plugins
 	 * @return The output of the logic plugins
 	 */
-	static public LogicRepositoryData sendToLogicRepository(CSpecification rvcParser, 
+	static public LogicRepositoryData sendToLogicRepository(CSpecification rvcParser,
 			String logicPluginDirPath) throws LogicException {
 		LogicRepositoryType cmgXMLIn = new LogicRepositoryType();
 		PropertyType logicProperty = new PropertyType();
@@ -322,7 +322,7 @@ public class Main {
 		LogicRepositoryData cmgDataIn = new LogicRepositoryData(cmgXMLIn);
 
 		// Find a logic plugin and apply it
-		ByteArrayOutputStream logicPluginResultStream 
+		ByteArrayOutputStream logicPluginResultStream
 		= LogicPluginFactory.process(logicPluginDirPath, logicName, cmgDataIn);
 
 		// Error check
@@ -340,11 +340,11 @@ public class Main {
 	 * @throws FileNotFoundException
 	 * @throws RVMException
 	 */
-	static private void outputCode(HashMap<CSpecification, LogicRepositoryData> rvcParser, 
+	static private void outputCode(HashMap<CSpecification, LogicRepositoryData> rvcParser,
 			String outputPath) throws LogicException, FileNotFoundException, RVMException {
-		HashMap<CSpecification, LogicPluginShellResult> toWrite = 
+		HashMap<CSpecification, LogicPluginShellResult> toWrite =
 				new HashMap<CSpecification, LogicPluginShellResult>();
-		
+
 		for (CSpecification cspec : rvcParser.keySet()) {
 			if(rvcParser.get(cspec) != null){
 				LogicRepositoryType logicOutputXML = rvcParser.get(cspec).getXML();
@@ -369,7 +369,7 @@ public class Main {
 	 * @param rvcParser The extracted information from the monitor specification
 	 * @return The result of applying the appropriate logic plugin shell to the parameters
 	 * @throws LogicException Something went wrong in applying the logic plugin shell
-	 * @throws RVMException 
+	 * @throws RVMException
 	 */
 	private static LogicPluginShellResult evaluateLogicPluginShell(
 			LogicRepositoryType logicOutputXML, CSpecification rvcParser, boolean parametric)
@@ -379,15 +379,15 @@ public class Main {
 		LogicPluginShell shell;
 
 		if("fsm".equals(logic)) {
-			shell = new CFSM((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser, 
+			shell = new CFSM((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser,
 					parametric);
 		}
 		else if("tfsm".equals(logic)) {
-			shell = new CTFSM((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser, 
+			shell = new CTFSM((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser,
 					parametric);
 		}
 		else if("cfg".equals(logic)) {
-			shell = new CCFG((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser, 
+			shell = new CCFG((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser,
 					parametric);
 		}
 		else {
