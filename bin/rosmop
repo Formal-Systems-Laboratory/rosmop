@@ -6,13 +6,13 @@ DIR="$(dirname $SHDIR)"
 RVMASTER="$(dirname $DIR)"
 RVMASTERSRC=$RVMASTER/src/RVMaster/src
 RVMASTERINC=$RVMASTER/src/RVMaster/include
-
+ROSMOPJAR=$DIR/target/rosmop-1.0.0-SNAPSHOT.jar
 export LOGICPLUGINPATH=$DIR/lib/plugins
 
 PARAMS=$@
 
 function generate(){
-	java -cp "$DIR/lib/ROSMOP.jar":"$RVMONITOR/*":"$RVMONITOR/plugins/*" rosmop.Main $@
+        java -jar $ROSMOPJAR $@
 }
 
 function rvcompile(){
@@ -20,7 +20,7 @@ function rvcompile(){
         source devel/setup.sh
 }
 
-if [ -f "$DIR/lib/ROSMOP.jar" ];
+if [ -f "$ROSMOPJAR" ];
 then
         if [ $1 == "-monitorAsNode" ];
         then
@@ -65,5 +65,5 @@ then
 		echo "Something went wrong. Monitors are not generated."
 	fi
 else
-   echo "Binaries are not created. Call \"ant\" first."
+   echo "Binaries are not created. Call \"mvn package\" first."
 fi

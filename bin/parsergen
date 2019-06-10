@@ -1,8 +1,0 @@
-#!/bin/bash
-
-SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DIR="$(dirname $SHDIR)"
-JAVACC="$DIR/.build/javacc-5.0.orig/bin/javacc"
-
-cd $DIR/src/rosmop/parser/main_parser
-$JAVACC rosmopparser.jj
