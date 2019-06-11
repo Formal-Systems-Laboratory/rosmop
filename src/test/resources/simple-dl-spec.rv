@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include "waterTankSimulation.h"
+#include "__RVC_level_limit_Monitor.h"
+
+DLTestMonitor() {
+
+  event ctrl_flow(double flow) /ctrl_flow_cmd std_msgs/Float64 '{data : flow}' {
+      ROS_INFO("An event is fired \n");
+  }
+  dL:
+           Functions.
+             R m.
+             R ep.
+           End.
+
+           ProgramVariables.
+             R f.
+             R l.
+             R c.
+           End.
+
+           Problem.
+                (0 <= l & l <= m & 0 < ep)
+             -> [
+                 { f :=*;
+                   ?-1 <= f & f <= (m-l)/ep;
+                   c := 0;
+                   { l' = f, c' = 1 & 0 <= l & c <= ep }
+                 }*
+                ](0 <= l & l <= m)
+           End.
+
+    @dLviolation { printf("Violation Occured \n"); }
+
+}

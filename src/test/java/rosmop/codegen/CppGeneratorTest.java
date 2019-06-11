@@ -6,16 +6,15 @@ import org.junit.*;
 import org.apache.commons.io.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
 import rosmop.parser.ast.MonitorFile;
 import rosmop.parser.main_parser.ROSMOPParser;
+import rosmop.util.ResourceUtils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,16 +22,13 @@ import static org.junit.Assert.fail;
 
 
 public class CppGeneratorTest {
+    static ResourceUtils resourceUtils;
 
+    @BeforeClass
+    public static void setup() {
+        resourceUtils = new ResourceUtils();
+    }
 
-   private File processFileNameFromResources(String specFileName) {
-       ClassLoader classLoader = getClass().getClassLoader();
-       File file = new File(classLoader.getResource(specFileName).getFile());
-       if(file == null) {
-           fail("File " + specFileName + " absent or invoker doesn't have adequate privileges to get the resource");
-       }
-       return file;
-   }
    private void testOutputFiles(File specFile, boolean monitorAsNode) {
        String generatedCpp, expectedCpp;
        try {
@@ -65,21 +61,21 @@ public class CppGeneratorTest {
    }
 
    private void simpleTestRunWithParams(String specFileName, boolean monitorAsNode) {
-       File file = processFileNameFromResources(specFileName);
+       try {
+       File file = resourceUtils.processFileNameFromResources(specFileName);
        MonitorFile parsedFile = ROSMOPParser.parse(file.getAbsolutePath());
        CSpecification cSpecification = new RVParserAdapter(parsedFile);
        HashMap<CSpecification, LogicPluginShellResult> map = new HashMap();
        map.put(cSpecification, null);
-       try {
-           if(monitorAsNode) {
-               HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-isolated-generated.h"), true);
-               CppGenerator.generateCpp(map, getCppPathForSpec(file, "-isolated-generated.cpp"), true);
-           } else {
-               HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-complete-generated.h"),false);
-               CppGenerator.generateCpp(map, getCppPathForSpec(file, "-complete-generated.cpp"), false);
-           }
-           testOutputFiles(file, monitorAsNode);
-       } catch (FileNotFoundException | ROSMOPException e) {
+       if(monitorAsNode) {
+           HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-isolated-generated.h"), true);
+           CppGenerator.generateCpp(map, getCppPathForSpec(file, "-isolated-generated.cpp"), true);
+       } else {
+           HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-complete-generated.h"),false);
+           CppGenerator.generateCpp(map, getCppPathForSpec(file, "-complete-generated.cpp"), false);
+       }
+       testOutputFiles(file, monitorAsNode);
+       } catch (IOException | ROSMOPException e) {
            fail(e.getMessage());
        }
 
@@ -99,4 +95,7 @@ public class CppGeneratorTest {
     public void simpleSpecCppRVMaster() {
        simpleTestRunWithParams("simple-spec.rv", false);
     }
+
+    @Test @Ignore("Ignoring Dl Generation Test (WIP)")
+    public void simpleDlSpecIsolatedNode() { simpleTestRunWithParams("simple-dl-spec.rv", true);}
 }
