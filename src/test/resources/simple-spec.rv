@@ -1,0 +1,10 @@
+#include <stdlib.h>
+#include "ros/ros.h"
+
+TestMonitor() {
+
+       event testEvent(double testPar) /test std_msgs/Float64 '{data:testPar}'
+       {
+           ROS_INFO("Test Parameter Binding is %g", testPar);
+       }
+}
