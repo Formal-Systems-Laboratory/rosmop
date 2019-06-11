@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import rosmop.ROSMOPException;
@@ -37,19 +38,19 @@ public class CppGeneratorTest {
        try {
            if(monitorAsNode) {
                generatedCpp = FileUtils.readFileToString(
-                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-isolated-generated.cpp"))
+                       FileUtils.getFile(getCppPathForSpec(specFile, "-isolated-generated.cpp"))
                        , StandardCharsets.UTF_8);
 
                expectedCpp = FileUtils.readFileToString(
-                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-isolated-expected.cpp"))
+                       FileUtils.getFile(getCppPathForSpec(specFile, "-isolated-expected.cpp"))
                        , StandardCharsets.UTF_8);
            } else {
                generatedCpp = FileUtils.readFileToString(
-                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-complete-generated.cpp"))
+                       FileUtils.getFile(getCppPathForSpec(specFile, "-complete-generated.cpp"))
                        , StandardCharsets.UTF_8);
 
                expectedCpp = FileUtils.readFileToString(
-                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-complete-expected.cpp"))
+                       FileUtils.getFile(getCppPathForSpec(specFile, "-complete-expected.cpp"))
                        , StandardCharsets.UTF_8);
            }
            assertThat(generatedCpp).isEqualToIgnoringWhitespace(expectedCpp);
@@ -58,8 +59,9 @@ public class CppGeneratorTest {
        }
    }
 
-   private String getAbsoluteFilePath(File specFile, String post) {
-       return specFile.getAbsolutePath().replace(".rv", post );
+   private String getCppPathForSpec(File specFile, String post) {
+       String basePath = FilenameUtils.concat(specFile.getParent(), "cpp");
+       return FilenameUtils.concat(basePath, specFile.getName().replace(".rv", post));
    }
 
    private void simpleTestRunWithParams(String specFileName, boolean monitorAsNode) {
@@ -70,11 +72,11 @@ public class CppGeneratorTest {
        map.put(cSpecification, null);
        try {
            if(monitorAsNode) {
-               HeaderGenerator.generateHeader(map, getAbsoluteFilePath(file, "-isolated-generated.h"), true);
-               CppGenerator.generateCpp(map, getAbsoluteFilePath(file, "-isolated-generated.cpp"), true);
+               HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-isolated-generated.h"), true);
+               CppGenerator.generateCpp(map, getCppPathForSpec(file, "-isolated-generated.cpp"), true);
            } else {
-               HeaderGenerator.generateHeader(map, getAbsoluteFilePath(file, "-complete-generated.h"),false);
-               CppGenerator.generateCpp(map, getAbsoluteFilePath(file, "-complete-generated.cpp"), false);
+               HeaderGenerator.generateHeader(map, getCppPathForSpec(file, "-complete-generated.h"),false);
+               CppGenerator.generateCpp(map, getCppPathForSpec(file, "-complete-generated.cpp"), false);
            }
            testOutputFiles(file, monitorAsNode);
        } catch (FileNotFoundException | ROSMOPException e) {
