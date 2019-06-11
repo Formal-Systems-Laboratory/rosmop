@@ -24,7 +24,11 @@ import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShellResul
  */
 public class CppGenerator {
 
-	protected final static SourcePrinter printer = new SourcePrinter();
+	protected static SourcePrinter printer = new SourcePrinter();
+
+	public static void reset() {
+		printer = new SourcePrinter();
+	}
 
 	public static void generateCpp(HashMap<CSpecification, LogicPluginShellResult> toWrite,
 								   String outputPath, boolean monitorAsNode) throws FileNotFoundException, ROSMOPException{

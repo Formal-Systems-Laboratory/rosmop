@@ -20,12 +20,16 @@ import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShellResul
  */
 public class HeaderGenerator {
 
-	protected final static SourcePrinter printer = new SourcePrinter();
+	protected static SourcePrinter printer = new SourcePrinter();
 	static boolean hasInit = false;
 	static HashMap<String, ArrayList<ROSEvent>> addedTopics = 
 			new HashMap<String, ArrayList<ROSEvent>>();
 
 
+	public static void reset() {
+		printer = new SourcePrinter();
+		addedTopics.clear();
+	}
 
 	/**
 	 * Gathers all the information for the monitor header file and prints necessary parts
