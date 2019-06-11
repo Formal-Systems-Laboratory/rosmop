@@ -32,18 +32,27 @@ public class CppGeneratorTest {
        }
        return file;
    }
-
-   private void testOutputFiles(File specFile) {
+   private void testOutputFiles(File specFile, boolean monitorAsNode) {
+       String generatedCpp, expectedCpp;
        try {
-           String generatedCpp = FileUtils.readFileToString(
-                           FileUtils.getFile(getAbsoluteFilePath(specFile, "-generated.cpp"))
-                           , StandardCharsets.UTF_8);
+           if(monitorAsNode) {
+               generatedCpp = FileUtils.readFileToString(
+                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-isolated-generated.cpp"))
+                       , StandardCharsets.UTF_8);
 
-           String expectedCpp = FileUtils.readFileToString(
-                   FileUtils.getFile(getAbsoluteFilePath(specFile, "-expected.cpp"))
-                   , StandardCharsets.UTF_8);
+               expectedCpp = FileUtils.readFileToString(
+                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-isolated-expected.cpp"))
+                       , StandardCharsets.UTF_8);
+           } else {
+               generatedCpp = FileUtils.readFileToString(
+                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-complete-generated.cpp"))
+                       , StandardCharsets.UTF_8);
 
-           assertThat(generatedCpp).isNotEqualToIgnoringWhitespace(expectedCpp);
+               expectedCpp = FileUtils.readFileToString(
+                       FileUtils.getFile(getAbsoluteFilePath(specFile, "-complete-expected.cpp"))
+                       , StandardCharsets.UTF_8);
+           }
+           assertThat(generatedCpp).isEqualToIgnoringWhitespace(expectedCpp);
        } catch (IOException e) {
            fail(e.getMessage());
        }
@@ -53,20 +62,39 @@ public class CppGeneratorTest {
        return specFile.getAbsolutePath().replace(".rv", post );
    }
 
-    @Test
-    public void simpleSpecCpp() {
-       File file = processFileNameFromResources("simple-spec.rv");
+   private void simpleTestRunWithParams(String specFileName, boolean monitorAsNode) {
+       File file = processFileNameFromResources(specFileName);
        MonitorFile parsedFile = ROSMOPParser.parse(file.getAbsolutePath());
        CSpecification cSpecification = new RVParserAdapter(parsedFile);
        HashMap<CSpecification, LogicPluginShellResult> map = new HashMap();
        map.put(cSpecification, null);
        try {
-           System.out.println(file.getAbsolutePath());
-           HeaderGenerator.generateHeader(map, getAbsoluteFilePath(file, "-generated.h"), true);
-           CppGenerator.generateCpp(map, getAbsoluteFilePath(file, "-generated.cpp"), true);
-           testOutputFiles(file);
+           if(monitorAsNode) {
+               HeaderGenerator.generateHeader(map, getAbsoluteFilePath(file, "-isolated-generated.h"), true);
+               CppGenerator.generateCpp(map, getAbsoluteFilePath(file, "-isolated-generated.cpp"), true);
+           } else {
+               HeaderGenerator.generateHeader(map, getAbsoluteFilePath(file, "-complete-generated.h"),false);
+               CppGenerator.generateCpp(map, getAbsoluteFilePath(file, "-complete-generated.cpp"), false);
+           }
+           testOutputFiles(file, monitorAsNode);
        } catch (FileNotFoundException | ROSMOPException e) {
            fail(e.getMessage());
        }
+
+   }
+   @Before
+   public void resetGenerators(){
+       HeaderGenerator.reset();
+       CppGenerator.reset();
+   }
+
+    @Test
+    public void simpleSpecIsolatedNode() {
+      simpleTestRunWithParams("simple-spec.rv", true);
+    }
+
+    @Test
+    public void simpleSpecCppRVMaster() {
+       simpleTestRunWithParams("simple-spec.rv", false);
     }
 }
