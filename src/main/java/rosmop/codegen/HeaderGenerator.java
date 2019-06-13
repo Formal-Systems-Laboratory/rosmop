@@ -7,6 +7,7 @@ import java.util.HashMap;
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
 import rosmop.parser.ast.ROSEvent;
+import rosmop.parser.ast.Specification;
 import rosmop.util.Tool;
 
 import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
@@ -49,6 +50,7 @@ public class HeaderGenerator {
 
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			printer.printLn(rvcParser.getIncludes());
+			printer.printLn("");
 		}
 		populateAddedTopics(toWrite);
 		if(! monitorAsNode) {
@@ -105,6 +107,13 @@ public class HeaderGenerator {
 			printer.printLn();
 
 		} else {
+		    for(CSpecification rvcParser : toWrite.keySet()) {
+		        if(toWrite.get(rvcParser) != null) {
+		        	printer.printLn(toWrite.get(rvcParser).properties.getOrDefault("state declarations", "").toString());
+					printer.printLn("");
+					hasInit = true;
+				}
+			}
 			generateCallbacks(toWrite);
 		}
 		printer.printLn("#endif");

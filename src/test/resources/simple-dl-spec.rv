@@ -1,11 +1,17 @@
-#include <stdio.h>
-#include "waterTankSimulation.h"
-#include "__RVC_level_limit_Monitor.h"
+#include state.h
 
 DLTestMonitor() {
 
-  event ctrl_flow(double flow) /ctrl_flow_cmd std_msgs/Float64 '{data : flow}' {
-      ROS_INFO("An event is fired \n");
+  event ctrl_flow_cmd(double flow) /ctrl_flow_cmd std_msgs/Float64 '{data : flow}' {
+        if(!monitorSatisfied(pre, current, &params)) {
+            ROS_INFO("dL Violation");
+        }
+  }
+  event water_level(double level) /water_level std_msgs/Float64 '{data : level}' {
+       updateState_l(level);
+  }
+  event current_flow(double curr_flow) /flow_actual std_msgs/Float64 '{data : curr_flow}' {
+       updateState_f();
   }
   dL:
            Functions.

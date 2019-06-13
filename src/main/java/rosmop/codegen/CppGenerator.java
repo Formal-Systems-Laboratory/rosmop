@@ -99,6 +99,15 @@ public class CppGenerator {
 			printer.printLn("}");
 			printer.printLn();
 		} else {
+		    toWrite.values().forEach(x -> {
+		        if(x != null) {
+					printer.print(x.properties.getOrDefault("state setters", "").toString());
+					printer.printLn("");
+
+					printer.print(x.properties.getOrDefault("monitoring body", "").toString());
+					printer.printLn("");
+				}
+		    });
 			printMonitorCallbacks(toWrite, true);
 		 	printMain(toWrite);
 		}
@@ -112,6 +121,11 @@ public class CppGenerator {
 	   printer.indent();
 
 	   printer.printLn("ros::init(argc, argv, \"rvmonitor\");");
+
+	   if(HeaderGenerator.hasInit) {
+            printer.printLn("// Manually Written Initialization Code");
+            printer.printLn("init()");
+	    }
 
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			for (ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()) {

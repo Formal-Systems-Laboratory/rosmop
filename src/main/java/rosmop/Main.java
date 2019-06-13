@@ -14,6 +14,7 @@ import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
 import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShell;
 import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShellResult;
 import com.runtimeverification.rvmonitor.logicpluginshells.cfg.CCFG;
+import com.runtimeverification.rvmonitor.logicpluginshells.dl.CDL;
 import com.runtimeverification.rvmonitor.logicpluginshells.fsm.CFSM;
 import com.runtimeverification.rvmonitor.logicpluginshells.tfsm.CTFSM;
 import com.runtimeverification.rvmonitor.logicrepository.LogicException;
@@ -36,6 +37,9 @@ import rosmop.util.Tool;
  * @author Cansu Erdogan
  *
  * Entry point when calling ROSMOP.jar
+System.out.println(logic);
+System.out.println(logic);
+System.out.println(logic);
  *
  */
 public class Main {
@@ -388,6 +392,10 @@ public class Main {
 		}
 		else if("cfg".equals(logic)) {
 			shell = new CCFG((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser,
+					parametric);
+		}
+		else if("dl".equals(logic)) {
+			shell = new CDL((com.runtimeverification.rvmonitor.c.rvc.CSpecification) rvcParser,
 					parametric);
 		}
 		else {
