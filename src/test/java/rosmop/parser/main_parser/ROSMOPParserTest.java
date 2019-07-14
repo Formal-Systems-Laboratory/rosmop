@@ -36,7 +36,7 @@ public class ROSMOPParserTest {
             assertThat(spec.getProperties()).isEmpty();
 
             ROSEvent event = spec.getEvents().get(0);
-            assertThat(event.getTopic()).isEqualTo("/test");
+            assertThat(event.getTopic()).isEqualTo("/chatter");
             assertThat(event.getMsgType()).isEqualTo("std_msgs/Float64");
 
         } catch (IOException e) {
