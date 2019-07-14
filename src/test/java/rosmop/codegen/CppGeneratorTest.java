@@ -29,6 +29,7 @@ public class CppGeneratorTest {
         resourceUtils = new ResourceUtils();
     }
 
+
    private void testOutputFiles(File specFile, boolean monitorAsNode) {
        String generatedCpp, expectedCpp;
        try {
@@ -49,7 +50,8 @@ public class CppGeneratorTest {
                        FileUtils.getFile(getCppPathForSpec(specFile, "-complete-expected.cpp"))
                        , StandardCharsets.UTF_8);
            }
-           assertThat(generatedCpp).isEqualToIgnoringWhitespace(expectedCpp);
+           generatedCpp = generatedCpp.replaceAll("[\\h]*\\R", System.lineSeparator());
+           assertThat(generatedCpp).isEqualTo(expectedCpp);
        } catch (IOException e) {
            fail(e.getMessage());
        }
