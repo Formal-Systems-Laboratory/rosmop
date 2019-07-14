@@ -15,8 +15,8 @@ namespace rv
 
         void initMonitorTopics()
         {
-            monitorTopics.insert("/test");
-            topicsAndTypes["/test"] = "std_msgs/Float64";
+            monitorTopics.insert("/chatter");
+            topicsAndTypes["/chatter"] = "std_msgs/Float64";
 
             allMonitors.insert("TestMonitor");
 
@@ -24,7 +24,7 @@ namespace rv
 
         void initAdvertiseOptions(std::string topic, ros::AdvertiseOptions &ops_pub)
         {
-            if (topic == "/test") {
+            if (topic == "/chatter") {
                 ops_pub.init<std_msgs::Float64>(topic, 1000);
             }
         }
@@ -36,7 +36,7 @@ namespace rv
         topic_name = topic;
         server_manager = rv::ServerManager::instance();
 
-        if (topic == "/test") {
+        if (topic == "/chatter") {
             ops_sub.init<std_msgs::Float64>(topic, 1000, boost::bind(&RVMonitor::monitorCallback_testEvent, this, _1));
         }
     }
@@ -62,3 +62,4 @@ namespace rv
 
 
 }
+
