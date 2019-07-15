@@ -334,7 +334,7 @@ public class CppGenerator {
 					HeaderGenerator.addedTopics.get(event.getTopic()).clear();
 
 					if(!monitorAsNode) {
-						publishAndSerializeMsg();
+						publishAndSerializeMsg(event);
 					}
 
 					printer.unindent();
@@ -371,7 +371,7 @@ public class CppGenerator {
 					HeaderGenerator.addedTopics.get(event.getTopic()).remove(event);
 
 					if(!monitorAsNode)
-						publishAndSerializeMsg();
+						publishAndSerializeMsg(event);
 
 					printer.unindent();
 					printer.printLn();
@@ -474,13 +474,15 @@ public class CppGenerator {
 		}
 	}
 
+	private static void printMonitorEnabledCheck(ROSEvent event) {
+		printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB
+				+ ".find(\"" + event.getSpecName() + "\") != monitor::"
+				+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
+	}
+
 	private static void printActionCode(ROSEvent event, boolean monitorAsNode) {
 		if(!monitorAsNode) {
-			printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB
-					+ ".find(\"" + event.getSpecName() + "\") != monitor::"
-					+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
-			//		printer.printLn("{");
-			//		printer.indent();
+			printMonitorEnabledCheck(event);
 		}
 
 		if(monitorAsNode) {
@@ -496,12 +498,11 @@ public class CppGenerator {
 		printer.printLn();
 	}
 
+
 	private static void printRVMGeneratedFunction(ROSEvent mergeevents, boolean monitorAsNode) {
 		// __RVC_safeTrigger_checkPoint(std::string monitored_name, double monitored_position)
 		if(!monitorAsNode) {
-			printer.printLn("if(monitor::" + GeneratorUtil.MONITOR_TOPICS_ENB
-					+ ".find(\"" + mergeevents.getSpecName() + "\") != monitor::"
-					+ GeneratorUtil.MONITOR_TOPICS_ENB + ".end())");
+		    printMonitorEnabledCheck(mergeevents);
 			printer.printLn("{");
 			printer.printLn();
 			printer.indent();
@@ -524,9 +525,14 @@ public class CppGenerator {
 		printer.printLn();		
 	}
 
-	private static void publishAndSerializeMsg() {
+	private static void publishAndSerializeMsg(ROSEvent event) {
 		// ros::SerializedMessage serializedMsg = ros::serialization::serializeMessage(msgName);
 		// publishPtr->publish(serializedMsg);
+
+        printMonitorEnabledCheck(event);
+        printer.printLn("{");
+        printer.indent();
+
 		String serializedMessage = 
 				"ros::SerializedMessage serializedMsg = ros::serialization::serializeMessage(" 
 				+ GeneratorUtil.MONITOR_COPY_MSG_NAME + ");";
@@ -535,6 +541,9 @@ public class CppGenerator {
 		serializedMessage = GeneratorUtil.SERVERMANAGER_PTR_NAME 
 				+ "->publish(" + GeneratorUtil.TOPIC_PTR_NAME + ", serializedMsg);";
 		printer.print(serializedMessage);
+		printer.unindent();
+		printer.printLn();
+		printer.print("}");
 	}
 
 }
