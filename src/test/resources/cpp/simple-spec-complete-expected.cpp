@@ -56,8 +56,11 @@ namespace rv
        }
 
 
-        ros::SerializedMessage serializedMsg = ros::serialization::serializeMessage(rv_msg);
-        server_manager->publish(topic_name, serializedMsg);
+        if(monitor::enabledMonitors.find("TestMonitor") != monitor::enabledMonitors.end())
+        {
+            ros::SerializedMessage serializedMsg = ros::serialization::serializeMessage(rv_msg);
+            server_manager->publish(topic_name, serializedMsg);
+        }
     }
 
 
