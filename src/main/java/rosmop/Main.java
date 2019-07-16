@@ -41,7 +41,7 @@ import rosmop.util.Tool;
  */
 public class Main {
 
-	static String logicPluginDirPath, pathToOutputNoExt;
+	static String logicPluginDirPath;
 
 	private static boolean monitorAsRosNode = false;
 
@@ -53,99 +53,47 @@ public class Main {
 	 *	directory
 	 * @param args One or list of .rv file(s)
 	 */
-	public static void main(String[] args) {
-		String monitorAsNodeFlag = "-monitorAsNode";
-		try {
+	public static void main(String[] _argv)
+	    throws ROSMOPException, LogicException, RVMException, java.io.IOException
+	{
+        String monitorAsNodeFlag = "-monitorAsNode";
 
-			if(args.length == 0 || (args.length == 1 && args[0].equals(monitorAsNodeFlag))) {
-				throw new ROSMOPException("Make sure you provide at least "
-						+ "one .rv file or a folder of .rv files.");
-			}
+        List<String> argv = Arrays.asList(_argv); 
+        logicPluginDirPath = readLogicPluginDir();
+        if (argv.remove(monitorAsNodeFlag)) {
+            monitorAsRosNode = true;
+        }
+        List<File> rvFiles = expandDirectories(argv);
+		checkArguments(rvFiles);
+		String outputNoExt = rvFiles.get(0).getParentFile().getAbsolutePath() + "/rvmonitor";
 
-			logicPluginDirPath = readLogicPluginDir();
-
-			if(args[0].equals(monitorAsNodeFlag)) {
-			    monitorAsRosNode = true;
-				processFileNames(Arrays.copyOfRange(args, 1, args.length));
-			} else {
-				processFileNames(args);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        List<MonitorFile> parsed = parseRVFiles(rvFiles);
+        process(parsed, outputNoExt);
 	}
 
-	private static void processFileNames(String[] inputSpecFiles)
-	    throws ROSMOPException, java.io.IOException, LogicException, RVMException
+    // Replace each directory in the input args with the list of files it contains
+	private static List<File> expandDirectories(List<String> inputFiles)
+	    throws java.io.IOException
     {
-		String pathToFile = "";
-		File fileToGetPath;
-		MonitorFile readyToProcess;
-			/*
-			1- "." means current directory (all .rv files in the directory)
-			2- if it ends with "/" or "\" process the given directory (all .rv files in the
-				directory)
-			3- one .rv file
-			 */
-		if (inputSpecFiles.length == 1) {
-			if(inputSpecFiles[0].equalsIgnoreCase(".")){
-				fileToGetPath = new File(System.getProperty("user.dir"));
-				pathToFile = fileToGetPath.getAbsolutePath();
-				//					/home/cans-u/workspace/rosmop
-				//					System.out.println(pathToFile);
-				pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
-				//					System.out.println(pathToOutputNoExt);
-				processDirOfFiles(pathToFile);
-			} else if(inputSpecFiles[0].endsWith(File.separator)){
-				fileToGetPath = new File(inputSpecFiles[0]);
-				pathToFile = fileToGetPath.getAbsolutePath();
-				//					/home/cans-u/Desktop
-				//					System.out.println(pathToFile);
-				pathToOutputNoExt = pathToFile + File.separator + "rvmonitor";
-				//					System.out.println(pathToOutputNoExt);
-				processDirOfFiles(pathToFile);
-			} else {
-				if (!checkArguments(inputSpecFiles)) {
-					throw new ROSMOPException("Unrecognized file type! The ROSMOP "
-							+ "specification file should have .rv as the extension.");
-				}
-				fileToGetPath = new File(inputSpecFiles[0]);
-				pathToFile = fileToGetPath.getAbsolutePath();
-				//					/home/cans-u/Desktop/deneme.rv
-				//					System.out.println(pathToFile);
-				pathToOutputNoExt = pathToFile.substring(0,
-						pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
-				//					System.out.println(pathToOutputNoExt);
-				readyToProcess = ROSMOPParser.parse(pathToFile);
-				List<MonitorFile> readyMonitor = new ArrayList<MonitorFile>();
-				readyMonitor.add(readyToProcess);
-				process(readyMonitor);
-			}
+        List<File> rvFiles = new ArrayList<File>();
+		for (String p : inputFiles) {
+    		File f = new File(p);
+            if (f.isDirectory()) {
+                rvFiles.addAll(Arrays.asList(f.listFiles()));
+            }
+            else {
+                rvFiles.add(f);
+            }
 		}
-		/*
-		 * multiple .rv files
-		 */
-		else {
-			// output file is going to be written in the first file's dir
-			fileToGetPath = new File(inputSpecFiles[0]);
-			pathToFile = fileToGetPath.getAbsolutePath();
-			//					/home/cans-u/Desktop/deneme.rv
-			//				System.out.println(pathToFile);
-			pathToOutputNoExt = pathToFile.substring(0,
-					pathToFile.lastIndexOf(File.separator)+1) + "rvmonitor";
-			//				System.out.println(pathToOutputNoExt);
-			processMultipleFiles(inputSpecFiles);
-		}
+		return rvFiles;
 	}
-
 
 	/**
 	 * Wraps the parsed monitor files as CSpecifications to send them to logic repository
 	 * (unless raw monitor) and then output the .h and .cpp files
 	 * @param readyMonitors A list of MonitorFiles which are parsed specifications
 	 */
-	private static void process(List<MonitorFile> readyMonitors)
+	private static void process(List<MonitorFile> readyMonitors, String pathToOutputNoExt)
 	    throws java.io.IOException, LogicException, RVMException
 	{
 		HashMap<CSpecification, LogicRepositoryData> rvcParser =
@@ -169,75 +117,34 @@ public class Main {
 	 * event names or field declarations, and if so sends them to {@link Main#process(List)}
 	 * @param args Takes a list of .rv files
 	 */
-	private static void processMultipleFiles(String[] args) {
+	private static List<MonitorFile> parseRVFiles(List<File> args)
+	    throws ROSMOPException
+	{
 		Set<String> events = new HashSet<String>();
 		Set<String> declarations = new HashSet<String>();
 		List<MonitorFile> readyMonitors = new ArrayList<MonitorFile>();
-		try {
-			if (!checkArguments(args)) {
-				throw new ROSMOPException("Unrecognized file type! The ROSMOP specification "
-						+ "file should have .rv as the extension.");
-			}
-			for (String arg : args) {
-				MonitorFile f = ROSMOPParser.parse(arg);
 
-				/* In case of multiple .rv files as input, all of the specifications
-				 * are gathered and checked for duplicate event names and field declarations;
-				 * they should have unique names.*/
-				for (Specification spec : f.getSpecifications()) {
-					for (ROSEvent event : spec.getEvents()) {
-						if (!events.add(event.getName()))
-							throw new ROSMOPException("Duplicate event names");
-					}
+		for (File arg : args) {
+			MonitorFile f = ROSMOPParser.parse(arg.toString());
 
-					for (Variable var : spec.getSpecDeclarations()) {
-						if(!declarations.add(var.getDeclaredName()))
-							throw new ROSMOPException("Duplicate field declarations");
-					}
+			/* In case of multiple .rv files as input, all of the specifications
+			 * are gathered and checked for duplicate event names and field declarations;
+			 * they should have unique names.*/
+			for (Specification spec : f.getSpecifications()) {
+				for (ROSEvent event : spec.getEvents()) {
+					if (!events.add(event.getName()))
+						throw new ROSMOPException("Duplicate event names");
 				}
 
-				readyMonitors.add(f);
-			}
-
-			process(readyMonitors);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Called when the input is a directory (ends with a file separator)
-	 * After handling directory structure, calls {@link Main#processMultipleFiles(String[])}
-	 *
-	 * @param arg Name of the input directory
-	 * @throws ROSMOPException
-	 */
-	private static void processDirOfFiles(String arg) throws ROSMOPException {
-		try {
-			File folder = new File(arg);
-			File[] listOfFiles = folder.listFiles();
-
-			//get rid of hidden files/folders & directories in the folder
-			//(won't be processed)
-			ArrayList<File> onlyFiles = new ArrayList<File>(Arrays.asList(listOfFiles));
-			for (int i = 0; i < onlyFiles.size(); i++) {
-				if(onlyFiles.get(i).isDirectory() || onlyFiles.get(i).getName().startsWith(".")){
-					onlyFiles.remove(i);
+				for (Variable var : spec.getSpecDeclarations()) {
+					if(!declarations.add(var.getDeclaredName()))
+						throw new ROSMOPException("Duplicate field declarations");
 				}
 			}
 
-			File noDirs[] = new File[onlyFiles.size()];
-			noDirs = onlyFiles.toArray(noDirs);
-			String fileNames[] = new String[noDirs.length];
-			for (int i = 0; i < fileNames.length; i++) {
-				fileNames[i] = noDirs[i].getAbsolutePath();
-			}
-
-			processMultipleFiles(fileNames);
-
-		} catch (Exception e) {
-			e.printStackTrace();
+			readyMonitors.add(f);
 		}
+		return readyMonitors;
 	}
 
 	/**
@@ -245,14 +152,22 @@ public class Main {
 	 * @param args .rv file names
 	 * @return True if all provided file names end with .rv, false otherwise
 	 */
-	private static boolean checkArguments(String[] args) {
-		if(args.length == 0) return false;
-		for (String arg : args) {
-			if(!Tool.isSpecFile(arg)){
-				return false;
+	private static void checkArguments(List<File> args)
+	    throws ROSMOPException
+	{
+		if (args.isEmpty()) {
+            throw new ROSMOPException("Make sure you provide at least "
+                    + "one .rv file or a folder of .rv files.");
+		}
+		for (File arg : args) {
+			if(!Tool.isSpecFile(arg.toString())){
+			    throw new ROSMOPException(
+    			              "Unrecognized file type for '" + arg.toString() + "'. "
+    			            + "The ROSMOP specification file "
+					        + "should have .rv as the extension."
+					        );
 			}
 		}
-		return true;
 	}
 
 	/**
