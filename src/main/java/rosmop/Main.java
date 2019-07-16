@@ -56,7 +56,7 @@ public class Main {
     public static void main(String[] _argv)
         throws ROSMOPException, LogicException, RVMException, java.io.IOException
     {
-        String monitorAsNodeFlag = "-monitorAsNode";
+        String monitorAsNodeFlag = "--monitor-as-node";
 
         List<String> argv = Arrays.asList(_argv); 
         logicPluginDirPath = readLogicPluginDir();
