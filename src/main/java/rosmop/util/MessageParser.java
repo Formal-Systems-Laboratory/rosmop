@@ -17,26 +17,23 @@ public class MessageParser {
 //		parseMessage(args[0]);
 //	}
 
-	public static Map<String, String> parseMessage(String msgName) {
+	public static Map<String, String> parseMessage(String msgName)
+	    throws java.io.IOException
+	{
 		Map<String, String> msgMapping = new HashMap<String, String>();
-		try {
-			Process tr = Runtime.getRuntime().exec(new String[] { "rosmsg", "show", msgName });
-			BufferedReader rd = new BufferedReader(new InputStreamReader(tr.getInputStream()));
-			String message = rd.readLine();
-			while (message != null) {
-				// get first level fields
-				if (!message.startsWith("  ") && Pattern.matches(".*[a-zA-Z]+.*", message)) {
-					Map.Entry<String, String> entry = parseSingleMessage(message);
-					if (!entry.getKey().contains("=")) {
-						// ignore constant fields
-						msgMapping.put(entry.getKey(), entry.getValue());
-					}
+		Process tr = Runtime.getRuntime().exec(new String[] { "rosmsg", "show", msgName });
+		BufferedReader rd = new BufferedReader(new InputStreamReader(tr.getInputStream()));
+		String message = rd.readLine();
+		while (message != null) {
+			// get first level fields
+			if (!message.startsWith("  ") && Pattern.matches(".*[a-zA-Z]+.*", message)) {
+				Map.Entry<String, String> entry = parseSingleMessage(message);
+				if (!entry.getKey().contains("=")) {
+					// ignore constant fields
+					msgMapping.put(entry.getKey(), entry.getValue());
 				}
-				message = rd.readLine();
 			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
+			message = rd.readLine();
 		}
 		return msgMapping;
 	}
