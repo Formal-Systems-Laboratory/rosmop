@@ -16,6 +16,13 @@ v.7 or higher
 3. [Maven](https://maven.apache.org)
  * We recommend version 3.3 or higher. Building with a version lower than 3.3
    may also work, but has not been tested.
+4. Download and `mvn install` `rv-monitor`
+
+   ```
+   git clone https://github.com/runtimeverification/rv-monitor.git
+   cd rv-monitor
+   mvn install
+   ```
 
 ## Install and Build
 
@@ -23,6 +30,8 @@ ROSMOP currently works integrated with
 [ROSRV](http://fsl.cs.illinois.edu/ROSRV). If you have already checked out the
 ROSRV source code by using the `--recursive` option, you do not have to check
 out the ROSMOP source code again (i.e. skip step 1).
+
+0. Make sure `rosmsg` is in your path (on Ubuntu 16.04 `source /opt/ros/kinetic/setup.sh`)
 
 1. Run `git clone https://github.com/runtimeverification/rosmop.git` to check
 out the source code from the Github repository.
