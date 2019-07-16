@@ -1,4 +1,4 @@
-#include "rvmonitor.h"
+#include "simple-spec-complete-generated.h"
 
 using namespace std;
 namespace rv

@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.cli.*;
+
 import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
 import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShell;
 import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShellResult;
@@ -53,22 +55,40 @@ public class Main {
      *  directory
      * @param args One or list of .rv file(s)
      */
-    public static void main(String[] _argv)
+    public static void main(String[] argv)
         throws ROSMOPException, LogicException, RVMException, java.io.IOException
     {
-        String monitorAsNodeFlag = "--monitor-as-node";
-
-        List<String> argv = Arrays.asList(_argv); 
-        logicPluginDirPath = readLogicPluginDir();
-        if (argv.remove(monitorAsNodeFlag)) {
-            monitorAsRosNode = true;
+        Options options = new Options();
+        options.addOption("n", "monitor-as-node", false, "Generated monitor can be run as a stand-alone ROS node.");
+        options.addOption(
+            OptionBuilder.withLongOpt("output-prefix")
+                         .withDescription("Path-prefix of generated output files. Full path without extension.")
+                         .hasArg().withArgName("path-prefix")
+                         .create()
+                         );
+        CommandLineParser parser = new DefaultParser();
+        CommandLine line = null; 
+        try { line = parser.parse(options, argv); }
+        catch (ParseException e) {
+            System.err.println(e.getMessage());
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("rosmop", options);
+            System.exit(1);
         }
-        List<File> rvFiles = expandDirectories(argv);
-        checkArguments(rvFiles);
-        String outputNoExt = rvFiles.get(0).getParentFile().getAbsolutePath() + "/rvmonitor";
+        monitorAsRosNode = line.hasOption("monitor-as-node");
+        String outputPrefix = null;
+        if (line.hasOption("output-prefix")) {
+            outputPrefix = line.getOptionValue("output-prefix");
+        }
 
+        List<File> rvFiles = expandDirectories(line.getArgList());
+        checkArguments(rvFiles);
         List<MonitorFile> parsed = parseRVFiles(rvFiles);
-        process(parsed, outputNoExt);
+        logicPluginDirPath = readLogicPluginDir();
+        if (outputPrefix == null) {
+            outputPrefix = rvFiles.get(0).getParentFile().getAbsolutePath() + "/rvmonitor";
+        } 
+        process(parsed, outputPrefix);
     }
 
     // Replace each directory in the input args with the list of files it contains
