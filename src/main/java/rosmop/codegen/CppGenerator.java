@@ -31,7 +31,9 @@ public class CppGenerator {
 	}
 
 	public static void generateCpp(HashMap<CSpecification, LogicPluginShellResult> toWrite,
-								   String outputPath, boolean monitorAsNode) throws FileNotFoundException, ROSMOPException{
+								   String outputPath, boolean monitorAsNode)
+	    throws FileNotFoundException, ROSMOPException, java.io.IOException
+	{
 		printer.printLn("#include \"rvmonitor.h\"");
 
 		if(!monitorAsNode) {
@@ -300,8 +302,9 @@ public class CppGenerator {
 	}
 
 	private static void printMonitorCallbacks(
-			HashMap<CSpecification, LogicPluginShellResult> toWrite, boolean monitorAsNode) {
-
+			HashMap<CSpecification, LogicPluginShellResult> toWrite, boolean monitorAsNode)
+	    throws java.io.IOException
+    {
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			for (ROSEvent event : ((RVParserAdapter) rvcParser).getEventsList()) {
 				if(HeaderGenerator.addedTopics.get(event.getTopic()).size() > 1){
@@ -441,7 +444,9 @@ public class CppGenerator {
 		}
 	}
 
-	private static void printParametersBinding(ROSEvent event) {
+	private static void printParametersBinding(ROSEvent event)
+	    throws java.io.IOException
+	{
 		// geometry_msgs::TwistStamped rv_msg;
 		// rv_msg.header = msg->header;
 		// rv_msg.twist = msg->twist;

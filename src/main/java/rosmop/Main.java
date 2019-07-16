@@ -76,7 +76,9 @@ public class Main {
 		}
 	}
 
-	private static void processFileNames(String[] inputSpecFiles) throws ROSMOPException {
+	private static void processFileNames(String[] inputSpecFiles)
+	    throws ROSMOPException, java.io.IOException, LogicException, RVMException
+    {
 		String pathToFile = "";
 		File fileToGetPath;
 		MonitorFile readyToProcess;
@@ -143,26 +145,22 @@ public class Main {
 	 * (unless raw monitor) and then output the .h and .cpp files
 	 * @param readyMonitors A list of MonitorFiles which are parsed specifications
 	 */
-	private static void process(List<MonitorFile> readyMonitors){
+	private static void process(List<MonitorFile> readyMonitors)
+	    throws java.io.IOException, LogicException, RVMException
+	{
 		HashMap<CSpecification, LogicRepositoryData> rvcParser =
 				new HashMap<CSpecification, LogicRepositoryData>();
-
-		try {
-			for (MonitorFile mf : readyMonitors) {
-				CSpecification cspec = (CSpecification) new RVParserAdapter(mf);
-				//raw monitor
-				if(cspec.getFormalism() != null){
-					LogicRepositoryData cmgDataOut =
-							sendToLogicRepository(cspec, logicPluginDirPath);
-					rvcParser.put(cspec, cmgDataOut);
-				} else
-					rvcParser.put(cspec, null);
-			}
-
-			outputCode(rvcParser, pathToOutputNoExt);
-		} catch (Exception e) {
-			e.printStackTrace();
+		for (MonitorFile mf : readyMonitors) {
+			CSpecification cspec = (CSpecification) new RVParserAdapter(mf);
+			//raw monitor
+			if(cspec.getFormalism() != null){
+				LogicRepositoryData cmgDataOut =
+						sendToLogicRepository(cspec, logicPluginDirPath);
+				rvcParser.put(cspec, cmgDataOut);
+			} else
+				rvcParser.put(cspec, null);
 		}
+		outputCode(rvcParser, pathToOutputNoExt);
 	}
 
 	/**
@@ -342,7 +340,9 @@ public class Main {
 	 * @throws RVMException
 	 */
 	static private void outputCode(HashMap<CSpecification, LogicRepositoryData> rvcParser,
-			String outputPath) throws LogicException, FileNotFoundException, RVMException {
+			String outputPath)
+		throws LogicException, FileNotFoundException, RVMException, java.io.IOException
+    {
 		HashMap<CSpecification, LogicPluginShellResult> toWrite =
 				new HashMap<CSpecification, LogicPluginShellResult>();
 
