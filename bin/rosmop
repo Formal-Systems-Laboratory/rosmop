@@ -1,69 +1,9 @@
 #!/bin/bash
 
-SHDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DIR="$(dirname $SHDIR)"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+base_dir="$(dirname $script_dir)"
+export LOGICPLUGINPATH=$base_dir/lib/plugins
+rosmop_jar="${base_dir}/target/rosmop-1.0.0-SNAPSHOT.jar"
+class_path="$rosmop_jar":"$RVMONITOR/*":"$RVMONITOR/plugins/*"
 
-RVMASTER="$(dirname $DIR)"
-RVMASTERSRC=$RVMASTER/src/RVMaster/src
-RVMASTERINC=$RVMASTER/src/RVMaster/include
-ROSMOPJAR=$DIR/target/rosmop-1.0.0-SNAPSHOT.jar
-export LOGICPLUGINPATH=$DIR/lib/plugins
-
-PARAMS=$@
-
-function generate(){
-        java -jar $ROSMOPJAR $@
-}
-
-function rvcompile(){
-	catkin_make
-        source devel/setup.sh
-}
-
-if [ -f "$ROSMOPJAR" ];
-then
-        if [ $1 == "-monitorAsNode" ];
-        then
-                FLAGS=$1
-                shift
-        fi
-
-	FILENAME=$1
-	case "$FILENAME" in
-	*/)
-		FILENAME=${FILENAME%"/"}
-#  		echo "slash $FILENAME"
-  		;;
-	*)
-		FILENAME=${FILENAME%".rv"}
-		FILENAME="$(dirname $FILENAME)"
-#		echo "no slash $FILENAME"
-		;;
-	esac
-
-	echo "Monitor generation..."
-
-	RES=$(generate $PARAMS)
-	echo $RES
-
-	if [ -f "$FILENAME/rvmonitor.cpp" ];
-	then
-                if [ ! "$FLAGS" == "-monitorAsNode" ];
-                then
-		        mv $FILENAME/rvmonitor.cpp $RVMASTERSRC
-		        mv $FILENAME/rvmonitor.h $RVMASTERINC
-
-		        echo "Generated files are copied."
-		        echo "Compiling RVMaster..."
-
-		        export -f rvcompile
-		        gnome-terminal --working-directory=$RVMASTER --execute bash -c "rvcompile ; bash"
-
-		        echo "Check compilation status on the new terminal."
-                fi
-	else
-		echo "Something went wrong. Monitors are not generated."
-	fi
-else
-   echo "Binaries are not created. Call \"mvn package\" first."
-fi
+exec java -cp $class_path rosmop.Main "$@"
