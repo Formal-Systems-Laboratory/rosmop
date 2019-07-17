@@ -60,11 +60,11 @@ public class Main {
     {
         Options options = new Options();
         options.addOption("n", "monitor-as-node", false, "Generated monitor can be run as a stand-alone ROS node.");
-        options.addOption(
-            OptionBuilder.withLongOpt("output-prefix")
-                         .withDescription("Path-prefix of generated output files. Full path without extension.")
-                         .hasArg().withArgName("path-prefix")
-                         .create()
+        options.addOption(Option.builder("o")
+                                .withLongOpt("output-prefix")
+                                .withDescription("Path-prefix of generated output files. Full path without extension.")
+                                .hasArg().withArgName("path-prefix")
+                                .create()
                          );
         CommandLineParser parser = new DefaultParser();
         CommandLine line = null; 

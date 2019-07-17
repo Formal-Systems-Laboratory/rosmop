@@ -1,10 +1,13 @@
 package rosmop.codegen;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
 
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
@@ -34,7 +37,8 @@ public class CppGenerator {
 								   String outputPath, boolean monitorAsNode)
 	    throws FileNotFoundException, ROSMOPException, java.io.IOException
 	{
-		printer.printLn("#include \"rvmonitor.h\"");
+    	String headerFile = FilenameUtils.getBaseName(outputPath);
+		printer.printLn("#include \"" + headerFile + ".h\"");
 
 		if(!monitorAsNode) {
 
