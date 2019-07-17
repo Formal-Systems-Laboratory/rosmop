@@ -3,6 +3,7 @@ package rosmop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,15 +57,15 @@ public class Main {
      * @param args One or list of .rv file(s)
      */
     public static void main(String[] argv)
-        throws ROSMOPException, LogicException, RVMException, java.io.IOException
+        throws ROSMOPException, LogicException, RVMException, IOException
     {
         Options options = new Options();
         options.addOption("n", "monitor-as-node", false, "Generated monitor can be run as a stand-alone ROS node.");
         options.addOption(Option.builder("o")
-                                .withLongOpt("output-prefix")
-                                .withDescription("Path-prefix of generated output files. Full path without extension.")
-                                .hasArg().withArgName("path-prefix")
-                                .create()
+                                .longOpt("output-prefix")
+                                .desc("Path-prefix of generated output files. Full path without extension.")
+                                .hasArg().argName("path-prefix")
+                                .build()
                          );
         CommandLineParser parser = new DefaultParser();
         CommandLine line = null; 
@@ -91,17 +92,18 @@ public class Main {
         process(parsed, outputPrefix);
     }
 
-    // Replace each directory in the input args with the list of files it contains
+    /**
+     * Replace each directory in the input args with the list of files it contains
+     */
     private static List<File> expandDirectories(List<String> inputFiles)
-        throws java.io.IOException
+        throws IOException
     {
-        List<File> rvFiles = new ArrayList<File>();
+        List<File> rvFiles = new ArrayList<>();
         for (String p : inputFiles) {
             File f = new File(p);
             if (f.isDirectory()) {
                 rvFiles.addAll(Arrays.asList(f.listFiles()));
-            }
-            else {
+            } else {
                 rvFiles.add(f);
             }
         }
@@ -114,7 +116,7 @@ public class Main {
      * @param readyMonitors A list of MonitorFiles which are parsed specifications
      */
     private static void process(List<MonitorFile> readyMonitors, String pathToOutputNoExt)
-        throws java.io.IOException, LogicException, RVMException
+        throws IOException, LogicException, RVMException
     {
         HashMap<CSpecification, LogicRepositoryData> rvcParser =
                 new HashMap<CSpecification, LogicRepositoryData>();
@@ -125,8 +127,9 @@ public class Main {
                 LogicRepositoryData cmgDataOut =
                         sendToLogicRepository(cspec, logicPluginDirPath);
                 rvcParser.put(cspec, cmgDataOut);
-            } else
+            } else {
                 rvcParser.put(cspec, null);
+            }
         }
         outputCode(rvcParser, pathToOutputNoExt);
     }
@@ -276,7 +279,7 @@ public class Main {
      */
     static private void outputCode(HashMap<CSpecification, LogicRepositoryData> rvcParser,
             String outputPath)
-        throws LogicException, FileNotFoundException, RVMException, java.io.IOException
+        throws LogicException, FileNotFoundException, RVMException, IOException
     {
         HashMap<CSpecification, LogicPluginShellResult> toWrite =
                 new HashMap<CSpecification, LogicPluginShellResult>();
