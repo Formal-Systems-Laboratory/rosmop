@@ -88,7 +88,7 @@ public class Main {
         logicPluginDirPath = readLogicPluginDir();
         if (outputPrefix == null) {
             outputPrefix = rvFiles.get(0).getParentFile().getAbsolutePath() + "/rvmonitor";
-        } 
+        }
         process(parsed, outputPrefix);
     }
 
@@ -116,7 +116,7 @@ public class Main {
      * @param readyMonitors A list of MonitorFiles which are parsed specifications
      */
     private static void process(List<MonitorFile> readyMonitors, String pathToOutputNoExt)
-        throws IOException, LogicException, RVMException
+        throws IOException, LogicException, RVMException, ROSMOPException
     {
         HashMap<CSpecification, LogicRepositoryData> rvcParser =
                 new HashMap<CSpecification, LogicRepositoryData>();
@@ -197,16 +197,14 @@ public class Main {
      * Makes sure the LOGICPLUGINPATH environment variable is set.
      * @return The location of the logic plugins
      */
-    static public String readLogicPluginDir() {
+    static public String readLogicPluginDir()
+        throws LogicException
+    {
         String logicPluginDirPath = System.getenv("LOGICPLUGINPATH");
         if (logicPluginDirPath == null || logicPluginDirPath.length() == 0) {
-            try {
-                throw new LogicException(
-                        "Unrecoverable error: please set LOGICPLUGINPATH variable to refer to "
-                        + "the plugins directory");
-            } catch (LogicException e) {
-                e.printStackTrace();
-            }
+            throw new LogicException(
+                    "Unrecoverable error: please set LOGICPLUGINPATH variable to refer to "
+                    + "the plugins directory");
         }
 
         return logicPluginDirPath;
@@ -279,7 +277,7 @@ public class Main {
      */
     static private void outputCode(HashMap<CSpecification, LogicRepositoryData> rvcParser,
             String outputPath)
-        throws LogicException, FileNotFoundException, RVMException, IOException
+        throws ROSMOPException, LogicException, FileNotFoundException, RVMException, IOException
     {
         HashMap<CSpecification, LogicPluginShellResult> toWrite =
                 new HashMap<CSpecification, LogicPluginShellResult>();
@@ -294,12 +292,8 @@ public class Main {
             }
         }
 
-        try {
-            HeaderGenerator.generateHeader(toWrite, outputPath+".h", monitorAsRosNode);
-            CppGenerator.generateCpp(toWrite, outputPath+".cpp", monitorAsRosNode);
-        } catch (ROSMOPException e) {
-            e.printStackTrace();
-        }
+        HeaderGenerator.generateHeader(toWrite, outputPath+".h", monitorAsRosNode);
+        CppGenerator.generateCpp(toWrite, outputPath+".cpp", monitorAsRosNode);
     }
 
     /**
