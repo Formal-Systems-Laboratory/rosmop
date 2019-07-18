@@ -7,6 +7,7 @@ import java.util.HashMap;
 import rosmop.ROSMOPException;
 import rosmop.RVParserAdapter;
 import rosmop.parser.ast.ROSEvent;
+import rosmop.parser.ast.Specification;
 import rosmop.util.Tool;
 
 import com.runtimeverification.rvmonitor.c.rvc.CSpecification;
@@ -15,14 +16,14 @@ import com.runtimeverification.rvmonitor.logicpluginshells.LogicPluginShellResul
 /**
  * @author Cansu Erdogan
  *
- * Generates rvmonitor.h file from the wrapped ASTs of input specification files 
- * 
+ * Generates rvmonitor.h file from the wrapped ASTs of input specification files
+ *
  */
 public class HeaderGenerator {
 
 	protected static SourcePrinter printer = new SourcePrinter();
 	static boolean hasInit = false;
-	static HashMap<String, ArrayList<ROSEvent>> addedTopics = 
+	static HashMap<String, ArrayList<ROSEvent>> addedTopics =
 			new HashMap<String, ArrayList<ROSEvent>>();
 
 
@@ -49,6 +50,7 @@ public class HeaderGenerator {
 
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			printer.printLn(rvcParser.getIncludes());
+			printer.printLn("");
 		}
 		populateAddedTopics(toWrite);
 		if(! monitorAsNode) {
@@ -105,7 +107,14 @@ public class HeaderGenerator {
 			printer.printLn();
 
 		} else {
-			generateCallbacks(toWrite);
+		    for(CSpecification rvcParser : toWrite.keySet()) {
+		        if(toWrite.get(rvcParser) != null) {
+		            printer.printLn(toWrite.get(rvcParser).properties.getOrDefault("state declarations", "").toString());
+			    printer.printLn("");
+	                    hasInit = true;
+		        }
+                    }
+                    generateCallbacks(toWrite);
 		}
 		printer.printLn("#endif");
 		Tool.writeFile(printer.getSource(), outputPath);
