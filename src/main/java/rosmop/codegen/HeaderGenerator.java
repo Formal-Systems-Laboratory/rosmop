@@ -108,11 +108,11 @@ public class HeaderGenerator {
 
 		} else {
 		    for(CSpecification rvcParser : toWrite.keySet()) {
-		        if(toWrite.get(rvcParser) != null) {
-		            printer.printLn(toWrite.get(rvcParser).properties.getOrDefault("state declarations", "").toString());
+			if(toWrite.get(rvcParser) != null) {
+			    printer.printLn(toWrite.get(rvcParser).properties.getOrDefault("state declarations", "").toString());
 			    printer.printLn("");
-	                    hasInit = true;
-		        }
+			    hasInit = true;
+			}
                     }
                     generateCallbacks(toWrite);
 		}
@@ -128,30 +128,30 @@ public class HeaderGenerator {
 	 */
 	private static void generateCallbacks(
 			HashMap<CSpecification, LogicPluginShellResult> toWrite) {
-	
+
 		for (String topic : addedTopics.keySet()) {
 			if(addedTopics.get(topic).size() > 1){
-				printer.printLn("void mergedMonitorCallback_" + topic.replace("/", "") 
-						+ "(const " + addedTopics.get(topic).get(0).classifyMsgType() 
+				printer.printLn("void mergedMonitorCallback_" + topic.replace("/", "")
+						+ "(const " + addedTopics.get(topic).get(0).classifyMsgType()
 						+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ");");
 			}else{
-				printer.printLn("void monitorCallback_" + addedTopics.get(topic).get(0).getName() 
-						+ "(const " + addedTopics.get(topic).get(0).classifyMsgType() 
+				printer.printLn("void monitorCallback_" + addedTopics.get(topic).get(0).getName()
+						+ "(const " + addedTopics.get(topic).get(0).classifyMsgType()
 						+ "::ConstPtr& " + GeneratorUtil.MONITORED_MSG_NAME + ");");
 			}
 		}
-		
+
 		for (CSpecification rvcParser : toWrite.keySet()) {
 			if(!hasInit && !((RVParserAdapter) rvcParser).getInit().isEmpty()){
 				printer.printLn("void init();");
 				hasInit = true;
 			}
-			
+
 			if(toWrite.get(rvcParser) != null){
 				printer.printLn(
 						(String) toWrite.get(rvcParser).properties.get("header declarations"));
 			}
-		}		
+		}
 	}
 
 	/**
@@ -188,6 +188,6 @@ public class HeaderGenerator {
 		printer.printLn("#include \"ros/callback_queue.h\"");
 		printer.printLn("#include <rosgraph_msgs/Log.h>");
 		printer.printLn("#include <boost/scoped_ptr.hpp>");
-		printer.printLn("#include <ros/serialization.h>");		
+		printer.printLn("#include <ros/serialization.h>");
 	}
 }
