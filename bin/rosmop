@@ -6,4 +6,6 @@ export LOGICPLUGINPATH=$base_dir/lib/plugins
 rosmop_jar="${base_dir}/target/rosmop-1.0.0-SNAPSHOT.jar"
 class_path="$rosmop_jar":"$RVMONITOR/*":"$RVMONITOR/plugins/*"
 
-exec java -cp $class_path rosmop.Main "$@"
+[ -f "$rosmop_jar" ] \
+    || { echo >&2 "$0: jar not built. Run \`mvn package\`"; exit 1 ; }
+exec java -cp "$class_path" rosmop.Main "$@"
