@@ -75,11 +75,6 @@ public class HeaderGenerator {
 					+ "(std::string topic, ros::SubscribeOptions &"
 					+ GeneratorUtil.SUBSCRIBE_OPTIONS + ");");
 
-			//Deconstructor
-			printer.printLn("~" + GeneratorUtil.MONITOR_CLASS_NAME + "();");
-			printer.printLn();
-
-
 			generateCallbacks(toWrite);
 
 			printer.printLn();
